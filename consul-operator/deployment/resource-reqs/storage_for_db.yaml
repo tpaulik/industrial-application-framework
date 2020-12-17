@@ -1,0 +1,8 @@
+apiVersion: ops.dac.nokia.com/v1alpha1
+kind: Storage
+metadata:
+  name: storage-for-db
+spec:
+  accessModes:
+    - ReadWriteOnce
+  size: 500Mi

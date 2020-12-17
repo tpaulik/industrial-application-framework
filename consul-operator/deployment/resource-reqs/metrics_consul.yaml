@@ -1,0 +1,9 @@
+apiVersion: ops.dac.nokia.com/v1alpha1
+kind: MetricsEndpoint
+metadata:
+  name: consul-metricsendpoint
+spec:
+  Address: 
+    ServiceName: "example-consul-service"
+    ServicePort: "8500"
+    Path: "v1/agent/metrics?format=prometheus"

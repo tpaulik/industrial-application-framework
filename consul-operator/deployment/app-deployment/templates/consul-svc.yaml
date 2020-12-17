@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: example-consul-service
+  labels:
+    name: example-consul
+    deleteOnLicenceExpiration: "true"
+spec:
+  clusterIP: None
+  ports:
+    - name: http
+      port: {{ .Values.service.httpport }}
+      targetPort: {{.Values.service.httpport}}
+    - name: https
+      port: {{.Values.service.httpsport}}
+      targetPort: {{.Values.service.httpsport}}
+    - name: rpc
+      port: {{.Values.service.altport}}
+      targetPort: {{.Values.service.altport}}
+    - name: serflan-tcp
+      protocol: "TCP"
+      port: {{.Values.service.serflan}}
+      targetPort: {{.Values.service.serflan}}
+    - name: serflan-udp
+      protocol: "UDP"
+      port: {{.Values.service.serflan}}
+      targetPort: {{.Values.service.serflan}}
+    - name: serfwan-tcp
+      protocol: "TCP"
+      port: {{.Values.service.serfwan}}
+      targetPort: {{.Values.service.serfwan}}
+    - name: serfwan-udp
+      protocol: "UDP"
+      port: {{.Values.service.serfwan}}
+      targetPort: {{.Values.service.serfwan}}
+    - name: server
+      port: {{.Values.service.server}}
+      targetPort: {{.Values.service.server}}
+    - name: consuldns
+      port: {{.Values.service.consuldns}}
+      targetPort: {{.Values.service.consuldns}}
+    - name: metrics
+      port: 8500
+      targetPort: 8500
+  selector:
+    app: example-consul
+

@@ -1,0 +1,8 @@
+apiVersion: ops.dac.nokia.com/v1alpha1
+kind: Resourcerequest
+metadata:
+  name: resource-for-consul
+spec:
+  requestedResources:
+    cpu: 750m
+    memory: 384Mi

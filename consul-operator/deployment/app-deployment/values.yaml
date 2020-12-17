@@ -1,0 +1,17 @@
+# Default values for example-consul.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+replicaCount: [[ .ReplicaCount ]]
+metricsDomainName: [[ .MetricsDomainName ]]
+service:
+  uiport: [[ .Ports.UiPort ]]
+  altport: [[ .Ports.AltPort ]]
+  udpport: [[ .Ports.UdpPort ]]
+  httpsport: [[ .Ports.HttpPort ]]
+  httpport: [[ .Ports.HttpsPort ]]
+  serflan: [[ .Ports.Serflan ]]
+  serfwan: [[ .Ports.Serfwan ]]
+  consuldns: [[ .Ports.ConsulDns ]]
+  server: [[ .Ports.Server ]]
+

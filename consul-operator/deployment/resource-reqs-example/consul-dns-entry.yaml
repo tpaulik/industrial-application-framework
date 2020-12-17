@@ -1,0 +1,9 @@
+---
+apiVersion: dnsentry.dac.nokia.com/v1alpha1
+kind: DnsEntry
+metadata:
+  name: consul-dns-entry
+spec:
+  domainName: consul.company.com
+  deploymentName: example-consul
+  deploymentType: statefulsets

@@ -1,0 +1,8 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: example-consul-cm
+data:
+  metrics.hcl: |
+    telemetry{prometheus_retention_time="24h" disable_hostname=true}

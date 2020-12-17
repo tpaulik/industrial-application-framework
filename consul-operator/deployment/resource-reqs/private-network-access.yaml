@@ -1,0 +1,13 @@
+[[ if .PrivateNetworkAccess ]]
+apiVersion: ops.dac.nokia.com/v1alpha1
+kind: PrivateNetworkAccess
+metadata:
+  name: private-network-for-consul
+spec:
+  customerNetwork: [[ .PrivateNetworkAccess.CustomerNetwork ]]
+  apnUUID: [[ .PrivateNetworkAccess.ApnUUID ]]
+  additionalRoutes:
+  [[ range .PrivateNetworkAccess.AdditionalRoutes ]]
+  - [[ . ]]
+  [[ end ]]
+[[ end ]]
