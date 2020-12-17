@@ -369,11 +369,7 @@ contains your new application.
     you should build and push the docker image with these commands:
     
     >docker build -t {replace this with your image name} -f upstream-example.Dockerfile .
-    >docker push {replace this with your image name}
-    
-    If you have access to the NDAC Jenkins then you can create your own development branch in [this](https://gitlabe1.ext.net.nokia.com/Nokia_DAaaS/application-registry)
-    repo and then you can execute the job of the [app-registry](https://jenkins.daaas.dynamic.nsn-net.net/job/DAaaS-k8s-CI-mergereq2master/job/app_registry/)
-    by defining you development branch. This job will push the build docker image to the vepro registry.
+    >docker push {replace this with your image name}       
     
     After you have the new application registry image with your own content in the docker registry, you just need to 
     update the app-registry deployment in your edge which is running in the `appfw` namespace.

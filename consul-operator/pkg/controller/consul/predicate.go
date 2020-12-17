@@ -1,3 +1,7 @@
+// Copyright 2020 Nokia
+// Licensed under the BSD 3-Clause License.
+// SPDX-License-Identifier: BSD-3-Clause
+
 /*the purpose of this module to filter every event which doesn't have any meaning for the applications.
 eg: status updates, restart cases, etc*/
 package consul

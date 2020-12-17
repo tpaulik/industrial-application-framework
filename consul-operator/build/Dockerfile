@@ -1,3 +1,7 @@
+# Copyright 2020 Nokia
+# Licensed under the BSD 3-Clause License.
+# SPDX-License-Identifier: BSD-3-Clause
+
 FROM registry.access.redhat.com/ubi7/ubi-minimal:latest
 
 ENV OPERATOR=/usr/local/bin/consul-operator \
