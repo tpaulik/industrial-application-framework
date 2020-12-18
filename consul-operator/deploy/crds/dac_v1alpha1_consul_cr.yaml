@@ -1,0 +1,20 @@
+# Copyright 2020 Nokia
+# Licensed under the BSD 3-Clause License.
+# SPDX-License-Identifier: BSD-3-Clause
+
+apiVersion: dac.nokia.com/v1alpha1
+kind: Consul
+metadata:
+  name: example-consul
+spec:
+  replicaCount: 1
+  ports:
+    uiPort: 8500
+    altPort: 8400
+    udpPort: 53
+    httpPort: 8080
+    httpsPort: 8443
+    serflan: 8301
+    serfwan: 8302
+    consulDns: 8600
+    server: 8300

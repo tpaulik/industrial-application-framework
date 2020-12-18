@@ -1,0 +1,133 @@
+# Copyright 2020 Nokia
+# Licensed under the BSD 3-Clause License.
+# SPDX-License-Identifier: BSD-3-Clause
+
+apiVersion: apiextensions.k8s.io/v1beta1
+kind: CustomResourceDefinition
+metadata:
+  name: consuls.dac.nokia.com
+spec:
+  group: dac.nokia.com
+  names:
+    kind: Consul
+    listKind: ConsulList
+    plural: consuls
+    singular: consul
+  scope: ""
+  subresources:
+    status: {}
+  validation:
+    openAPIV3Schema:
+      description: Consul is the Schema for the consuls API
+      properties:
+        apiVersion:
+          description: 'APIVersion defines the versioned schema of this representation
+            of an object. Servers should convert recognized schemas to the latest
+            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+          type: string
+        kind:
+          description: 'Kind is a string value representing the REST resource this
+            object represents. Servers may infer this from the endpoint the client
+            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+          type: string
+        metadata:
+          type: object
+        spec:
+          description: ConsulSpec defines the desired state of Consul
+          properties:
+            ports:
+              properties:
+                altPort:
+                  type: integer
+                consulDns:
+                  type: integer
+                httpPort:
+                  type: integer
+                httpsPort:
+                  type: integer
+                serflan:
+                  type: integer
+                serfwan:
+                  type: integer
+                server:
+                  type: integer
+                udpPort:
+                  type: integer
+                uiPort:
+                  type: integer
+              type: object
+            replicaCount:
+              description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+                Important: RunCrTemplater "operator-sdk generate k8s" to regenerate
+                code after modifying this file Add custom validation using kubebuilder
+                tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
+              type: integer
+          required:
+          - ports
+          - replicaCount
+          type: object
+        status:
+          description: ConsulStatus defines the observed state of Consul
+          properties:
+            appReportedData:
+              properties:
+                metricsClusterIp:
+                  description: The structure of this type is up the application. AppFw
+                    will convert the whole representation to JSON.
+                  type: string
+              type: object
+            appStatus:
+              type: string
+            appliedResources:
+              items:
+                type: object
+              type: array
+            prevSpec:
+              description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
+                of cluster Important: RunCrTemplater "operator-sdk generate k8s" to
+                regenerate code after modifying this file Add custom validation using
+                kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
+              properties:
+                ports:
+                  properties:
+                    altPort:
+                      type: integer
+                    consulDns:
+                      type: integer
+                    httpPort:
+                      type: integer
+                    httpsPort:
+                      type: integer
+                    serflan:
+                      type: integer
+                    serfwan:
+                      type: integer
+                    server:
+                      type: integer
+                    udpPort:
+                      type: integer
+                    uiPort:
+                      type: integer
+                  type: object
+                replicaCount:
+                  description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+                    Important: RunCrTemplater "operator-sdk generate k8s" to regenerate
+                    code after modifying this file Add custom validation using kubebuilder
+                    tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
+                  type: integer
+              required:
+              - ports
+              - replicaCount
+              type: object
+          type: object
+      type: object
+  conversion:
+    strategy: None
+  version: v1alpha1
+  versions:
+  - name: v1alpha1
+    served: true
+    storage: false
+  - name: v1alpha2
+    served: true
+    storage: true

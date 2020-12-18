@@ -1,0 +1,12 @@
+# Copyright 2020 Nokia
+# Licensed under the BSD 3-Clause License.
+# SPDX-License-Identifier: BSD-3-Clause
+
+apiVersion: ops.dac.nokia.com/v1alpha1
+kind: Storage
+metadata:
+  name: storage-for-db
+spec:
+  accessModes:
+    - ReadWriteOnce
+  size: 500Mi

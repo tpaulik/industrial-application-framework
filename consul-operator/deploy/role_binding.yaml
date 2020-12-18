@@ -1,0 +1,15 @@
+# Copyright 2020 Nokia
+# Licensed under the BSD 3-Clause License.
+# SPDX-License-Identifier: BSD-3-Clause
+
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: consul-operator
+subjects:
+- kind: ServiceAccount
+  name: consul-operator
+roleRef:
+  kind: Role
+  name: consul-operator
+  apiGroup: rbac.authorization.k8s.io
