@@ -12,7 +12,7 @@ It is a stateful application so it needs persistent storage and it has prometheu
 That's why it is a good candidate to represent the currently available NDAC App FW platform services.
 
 ## Features
-###### Platform resource request handling
+#### Platform resource request handling
 The only way for an application to request NDAC platform resources (persistent storage, prometheus monitoring collection,
 access to the PLTE network, etc.) is to create the CR (CustomResource) of the platform resource provider. A CR contains
 the parameters which are needed to give the requested resource for the application. Every platform resource provider
@@ -23,7 +23,7 @@ needed configuration and update the result of the evaluation in the CR (status/a
 This example contains a metrics collection and a storage request. The application deployment starts with the apply of 
 these requests and the deployment flow continuous only when the resources are granted for the application.
 
-###### Ingress for the application Components
+#### Ingress for the application Components
 This project has an example how the application components which have HTTP interface can be reachable from outside,
 using a domain name. The domain name should come from the app spec CR, defined by the customer. The customer needs to
 register the domain name in his/her own DNS server which should point to the ingress controller of the application
@@ -38,7 +38,7 @@ curl --noproxy metrics.consul.appdomain.com http://10.10.38.3/v1/agent/metrics -
 In this example the 10.10.38.3 address is the IP of the ingress controller. The entry is not registred in the DNS server or
 in the hosts file of the machine so it is defined as an additional Host header.
  
-###### CR based deployment templating
+#### CR based deployment templating
 An application operator has at least one CR (currently exactly one supported by the App FW) which contains the basic
 configuration of the application and serves as a trigger for the deployment/undeplyoment.
 The values from the CR can be used as template variables which can be inserted into the deployment yamls.
@@ -115,7 +115,7 @@ back the templated, concatenated yaml files as a string which can be applied in 
 	}
 ```
 
-###### Helm3 chart support
+#### Helm3 chart support
 If your application already has a Helm chart then you can reuse that in the application operator. This example 
 project uses Helm3 to deploy/undeploy the chart placed in the app-deployment directory.
 If you use the CR templating, described in the previous section, then you can feed the data from the CR to the values.yaml
@@ -148,7 +148,7 @@ Usage:
 The helm chart support and the CR based templating is independent from each other. You can use one or both of them.
 In this example the parameters in the values.yaml are filled from the CR using the CR templating feature.
  
-###### Application pod status monitoring
+#### Application pod status monitoring
 An application operator must report back the status of the application via its own CR in the status/appStatus field.
 This information will be used on the NDAC customer portal to show whether the application is working or not.
 
@@ -160,7 +160,7 @@ appStatus is updated to `NotRunning`.
 A complex application needs to have a more sophisticated mechanism to handle this status update but this is 
 absolutely application specific.
 
-###### Reporting data to NDAC
+#### Reporting data to NDAC
 An application operator has the possibility to report back some custom data to the NDAC DC. This data can be
 visualized on the NDAC Customer or Maintenance UI. Typically such data should be reported which gets value after
 the deployment and its value can not be known before. Eg: the url of the application UI or some dynamic IP address
@@ -198,7 +198,7 @@ Example:
 	monitor.Run()
 ```
 
-###### Application licence handling
+#### Application licence handling
 Every application in NDAC App FW has a corresponding licence to protect it from unwanted use. It is the
 the responsibility of the application developer to define its behavior in the event of licence expiration
 and re/activation, thus the developer should implement the following interface:
@@ -225,7 +225,7 @@ should be able to set its status to "FROZEN" so the NDAC App FW will be notified
 becomes valid, its status should be set to "RUNNING" or "NOT_RUNNING" depending on the application
 criteria set for it to be in either state.
 
-###### Application removal
+#### Application removal
 In case the CR of the application operator is deleted the operator should gracefully stop the application
 and removed the deployed resources. It again depends on the application how it can be safely stopped.
 
