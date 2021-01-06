@@ -364,30 +364,30 @@ platform request resources:
 1. After your operator will be able to build. You will need a Kubernetes cluster and there
 you need to deploy your operator by applying the yaml files from the deploy directory. 
 
-What you need are the:
--	deploy/role.yaml
--	deploy/rolebindig.yaml
--	deploy/service_account.yaml
--	deploy/crd/dac.nokia.com_consuls_crd.yaml
--	deploy/operator.yaml (this part need to be replaced “image: REPLACE_IMAGE”)
+    What you need are the:
+    -	deploy/role.yaml
+    -	deploy/rolebindig.yaml
+    -	deploy/service_account.yaml
+    -	deploy/crd/dac.nokia.com_consuls_crd.yaml
+    -	deploy/operator.yaml (this part need to be replaced “image: REPLACE_IMAGE”)
 
 2. The next step is to apply the CR from the deploy/crds/*_cr.yaml to the same namespace where your
 operator is running. For this phase you should delete the content of the deployment/resource-reqs directory because on your
 environment the NDAC platform resource providers are not available so your operator won’t be able to get the needed resources
 and it will interrupt the deployment.
 
-With any empty resource-reqs directory you will see that your operator is deploying your application and when you delete
-the CR it should delete the deployed components.
+    With any empty resource-reqs directory you will see that your operator is deploying your application and when you delete
+    the CR it should delete the deployed components.
 
 3. After this phase works well you can proceed with the OLM integration.
 You should install the OLM components in your k8s cluster. It can be done by executing the install.sh from here :  
 https://github.com/operator-framework/operator-lifecycle-manager/tree/0.13.0/deploy/upstream/quickstart 
 
-You will have an olm namespace with some components. The olm-operator is the only relevant for you.
-You need to create a new namespace where your operator will be deployed. And in that namespace first you should create an OLM
-specific OperatorGroup resource. 
+    You will have an olm namespace with some components. The olm-operator is the only relevant for you.
+    You need to create a new namespace where your operator will be deployed. And in that namespace first you should create an OLM
+    specific OperatorGroup resource. 
 
-This is an example, please replace the “your-namespace” string with the namespace where you want to install your operator.
+    This is an example, please replace the “your-namespace” string with the namespace where you want to install your operator.
 
     ```yaml
     apiVersion: operators.coreos.com/v1
