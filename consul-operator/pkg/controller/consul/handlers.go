@@ -29,9 +29,9 @@ import (
 )
 
 const (
-	deploymentTypeDeploymentset = "deploymentsets"
-	deploymentTypeStatefulset   = "statefulsets"
-	deploymentTypeDaemonset     = "deamonsets"
+	deploymentTypeDeployment  = "deployments"
+	deploymentTypeStatefulset = "statefulsets"
+	deploymentTypeDaemonset   = "deamonsets"
 )
 
 type deploymentType string
