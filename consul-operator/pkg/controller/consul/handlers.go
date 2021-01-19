@@ -14,7 +14,7 @@ import (
 
 	netattv1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
 	"github.com/nokia/industrial-application-framework/consul-operator/libs/kubelib"
-	dac "github.com/nokia/industrial-application-framework/consul-operator/pkg/apis/dac/v1alpha2"
+	app "github.com/nokia/industrial-application-framework/consul-operator/pkg/apis/app/v1alpha1"
 	"github.com/nokia/industrial-application-framework/consul-operator/pkg/helm"
 	"github.com/nokia/industrial-application-framework/consul-operator/pkg/k8sdynamic"
 	"github.com/nokia/industrial-application-framework/consul-operator/pkg/licenceexpired"
@@ -43,7 +43,7 @@ type deploymentId struct {
 
 var appStatusMonitor *monitoring.Monitor
 
-func (r *ReconcileConsul) handleCrChange(instance *dac.Consul, namespace string) (reconcile.Result, error) {
+func (r *ReconcileConsul) handleCrChange(instance *app.Consul, namespace string) (reconcile.Result, error) {
 	logger := log.WithName("handlers").WithName("handleCrChange").WithValues("namespace", namespace, "name", instance.ObjectMeta.Name)
 	logger.Info("Event arrived handle it")
 	if instance.ObjectMeta.DeletionTimestamp != nil {
@@ -69,11 +69,11 @@ func (r *ReconcileConsul) handleCrChange(instance *dac.Consul, namespace string)
 	}
 }
 
-func isSpecUpdated(instance *dac.Consul) bool {
+func isSpecUpdated(instance *app.Consul) bool {
 	return instance.Status.PrevSpec != nil && !reflect.DeepEqual(instance.Spec, *instance.Status.PrevSpec)
 }
 
-func (r *ReconcileConsul) handleDelete(instance *dac.Consul, namespace string) (reconcile.Result, error) {
+func (r *ReconcileConsul) handleDelete(instance *app.Consul, namespace string) (reconcile.Result, error) {
 	logger := log.WithName("handlers").WithName("handleDelete").WithValues("namespace", namespace, "name", instance.ObjectMeta.Name)
 	logger.Info("Called")
 
@@ -99,7 +99,7 @@ func (r *ReconcileConsul) handleDelete(instance *dac.Consul, namespace string) (
 	return reconcile.Result{}, nil
 }
 
-func (r *ReconcileConsul) handleUpdate(instance *dac.Consul, namespace string) (reconcile.Result, error) {
+func (r *ReconcileConsul) handleUpdate(instance *app.Consul, namespace string) (reconcile.Result, error) {
 	logger := log.WithName("handlers").WithName("handleUpdate").WithValues("namespace", namespace, "name", instance.ObjectMeta.Name)
 	logger.Info("Called")
 
@@ -111,7 +111,7 @@ func (r *ReconcileConsul) handleUpdate(instance *dac.Consul, namespace string) (
 	return reconcile.Result{}, nil
 }
 
-func (r *ReconcileConsul) handleCreate(instance *dac.Consul, namespace string) (reconcile.Result, error) {
+func (r *ReconcileConsul) handleCreate(instance *app.Consul, namespace string) (reconcile.Result, error) {
 	logger := log.WithName("handlers").WithName("handleCreate").WithValues("namespace", namespace, "name", instance.ObjectMeta.Name)
 	logger.Info("Called")
 
@@ -225,7 +225,7 @@ func getPrivateNetworkIpAddresses(namespace, pnaName string, deploymentList []de
 	logger := log.WithName("getPrivateNetworkIpAddresses")
 	k8sClient := k8sdynamic.GetDynamicK8sClient()
 
-	pnaGvr := schema.GroupVersionResource{Version: "v1alpha1", Group: "ops.dac.nokia.com", Resource: "privatenetworkaccesses"}
+	pnaGvr := schema.GroupVersionResource{Version: "v1alpha1", Group: "ops.app.nokia.com", Resource: "privatenetworkaccesses"}
 	pnaObj, err := k8sClient.Resource(pnaGvr).Namespace(namespace).Get(pnaName, metav1.GetOptions{})
 	if err != nil {
 		logger.Error(err, "Failed to get the PrivateNetworkAccess CR")

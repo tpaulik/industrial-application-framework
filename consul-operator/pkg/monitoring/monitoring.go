@@ -8,7 +8,7 @@ import (
 	"context"
 
 	kubelib2 "github.com/nokia/industrial-application-framework/consul-operator/libs/kubelib"
-	dac "github.com/nokia/industrial-application-framework/consul-operator/pkg/apis/dac/v1alpha2"
+	app "github.com/nokia/industrial-application-framework/consul-operator/pkg/apis/app/v1alpha1"
 
 	"gitlabe2.ext.net.nokia.com/ndac-appfw/alarmlogger"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -22,7 +22,7 @@ import (
 
 type Monitor struct {
 	RuntimeClient      client.Client
-	Instance           *dac.Consul
+	Instance           *app.Consul
 	Namespace          string
 	ClientSet          *kubernetes.Clientset
 	Running            bool
@@ -37,7 +37,7 @@ var (
 	isAppNotRunningAlarmActive bool
 )
 
-func NewMonitor(runtimeClient client.Client, instance *dac.Consul, namespace string,
+func NewMonitor(runtimeClient client.Client, instance *app.Consul, namespace string,
 	runningCallback func(), notRunningCallback func()) *Monitor {
 	if monitoringInstance == nil {
 		monitoringInstance = &Monitor{
@@ -73,7 +73,7 @@ func (m *Monitor) Run() {
 				status := m.GetApplicationStatus()
 				if m.Instance.Status.AppStatus != status {
 					switch status {
-					case dac.AppStatusRunning:
+					case app.AppStatusRunning:
 						if isAppNotRunningAlarmActive {
 							// clear alarm
 							alarmlogger.ClearAlarm(alarmlogger.AppAlarm, &alarmlogger.AlarmDetails{
@@ -85,7 +85,7 @@ func (m *Monitor) Run() {
 							isAppNotRunningAlarmActive = false
 						}
 						m.RunningCallback()
-					case dac.AppStatusNotRunning:
+					case app.AppStatusNotRunning:
 						if !isAppNotRunningAlarmActive {
 							// raise alarm
 							alarmlogger.RaiseAlarm(alarmlogger.AppAlarm, &alarmlogger.AlarmDetails{
@@ -119,20 +119,20 @@ func (m *Monitor) Pause() {
 	}
 }
 
-func (m *Monitor) GetApplicationStatus() dac.AppStatus {
+func (m *Monitor) GetApplicationStatus() app.AppStatus {
 	pods, _ := m.ClientSet.CoreV1().Pods(m.Namespace).List(v1.ListOptions{LabelSelector: "statusCheck=true"})
 	for _, pod := range pods.Items {
 		if len(pod.Status.ContainerStatuses) == 0 {
-			return dac.AppStatusNotRunning
+			return app.AppStatusNotRunning
 		}
 		for _, containerStatus := range pod.Status.ContainerStatuses {
 			if !containerStatus.Ready {
-				return dac.AppStatusNotRunning
+				return app.AppStatusNotRunning
 			}
 		}
-		return dac.AppStatusRunning
+		return app.AppStatusRunning
 	}
-	return dac.AppStatusNotRunning
+	return app.AppStatusNotRunning
 }
 
 func (m *Monitor) watchInformer(eventHandler cache.ResourceEventHandler, stopper chan struct{}) {

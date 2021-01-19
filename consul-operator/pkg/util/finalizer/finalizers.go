@@ -10,7 +10,7 @@ import (
 	"k8s.io/apimachinery/pkg/util/sets"
 )
 
-const FinalizerId = "dac.nokia.com"
+const FinalizerId = "app.dac.nokia.com"
 
 // GetFinalizers gets the list of finalizers on obj
 func GetFinalizers(obj runtime.Object) ([]string, error) {

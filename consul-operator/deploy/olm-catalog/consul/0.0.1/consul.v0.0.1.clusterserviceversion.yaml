@@ -19,7 +19,7 @@ spec:
   customresourcedefinitions:
     owned:
     - kind: Consul
-      name: consuls.dac.nokia.com
+      name: consuls.app.dac.nokia.com
       version: v1alpha1
       displayName: Consul application
       description: Consul application
@@ -116,7 +116,7 @@ spec:
           verbs:
           - get
         - apiGroups:
-          - dac.nokia.com
+          - app.dac.nokia.com
           resources:
           - '*'
           - consuls

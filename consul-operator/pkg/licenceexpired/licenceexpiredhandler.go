@@ -8,7 +8,7 @@ import (
 	"context"
 
 	"gitlabe2.ext.net.nokia.com/ndac-appfw/alarmlogger"
-	dac "github.com/nokia/industrial-application-framework/consul-operator/pkg/apis/dac/v1alpha2"
+	app "github.com/nokia/industrial-application-framework/consul-operator/pkg/apis/app/v1alpha1"
 	"github.com/nokia/industrial-application-framework/consul-operator/pkg/k8sdynamic"
 	"github.com/nokia/industrial-application-framework/consul-operator/pkg/monitoring"
 
@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	Group    = "ops.dac.nokia.com"
+	Group    = "ops.app.nokia.com"
 	Version  = "v1alpha1"
 	Resource = "licenceexpireds"
 )
@@ -87,7 +87,7 @@ func (h *Handler) Watch() {
 // BEGIN sample callback functions
 type SampleFuncs struct {
 	RuntimeClient client.Client
-	AppInstance   *dac.Consul
+	AppInstance   *app.Consul
 	ClientSet     *kubernetes.Clientset
 	Monitor       *monitoring.Monitor
 	services      []*corev1.Service
@@ -104,7 +104,7 @@ func (cb *SampleFuncs) Expired() {
 	})
 
 	cb.Monitor.Pause()
-	cb.AppInstance.Status.AppStatus = dac.AppStatusFrozen
+	cb.AppInstance.Status.AppStatus = app.AppStatusFrozen
 	if err := cb.RuntimeClient.Status().Update(context.TODO(), cb.AppInstance); nil != err {
 		log.Error(err, "status appStatus update failed", "appStatus", cb.AppInstance.Status.AppStatus)
 	}
