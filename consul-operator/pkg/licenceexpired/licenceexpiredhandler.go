@@ -23,7 +23,7 @@ import (
 )
 
 const (
-	Group    = "ops.app.nokia.com"
+	Group    = "ops.dac.nokia.com"
 	Version  = "v1alpha1"
 	Resource = "licenceexpireds"
 )

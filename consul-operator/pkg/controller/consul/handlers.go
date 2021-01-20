@@ -225,7 +225,7 @@ func getPrivateNetworkIpAddresses(namespace, pnaName string, deploymentList []de
 	logger := log.WithName("getPrivateNetworkIpAddresses")
 	k8sClient := k8sdynamic.GetDynamicK8sClient()
 
-	pnaGvr := schema.GroupVersionResource{Version: "v1alpha1", Group: "ops.app.nokia.com", Resource: "privatenetworkaccesses"}
+	pnaGvr := schema.GroupVersionResource{Version: "v1alpha1", Group: "ops.dac.nokia.com", Resource: "privatenetworkaccesses"}
 	pnaObj, err := k8sClient.Resource(pnaGvr).Namespace(namespace).Get(pnaName, metav1.GetOptions{})
 	if err != nil {
 		logger.Error(err, "Failed to get the PrivateNetworkAccess CR")
