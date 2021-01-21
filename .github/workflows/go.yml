@@ -33,3 +33,4 @@ jobs:
       working-directory: ./alarmlogger
     - name: Test alarmlogger
       run: go test -v ./...
+      working-directory: ./alarmlogger
