@@ -16,6 +16,8 @@ jobs:
       uses: shivanshs9/setup-k8s-operator-sdk@v1.1.2
       with:
         version: "^0.18.0"
+      env: 
+        ACTIONS_ALLOW_UNSECURE_COMMANDS: true   
     - name: Build operator
       run: operator-sdk build consul-operator:test
       working-directory: ./consul-operator
