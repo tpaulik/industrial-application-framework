@@ -7,7 +7,7 @@ package consul
 import (
 	"context"
 
-	dac "github.com/nokia/industrial-application-framework/consul-operator/pkg/apis/dac/v1alpha2"
+	app "github.com/nokia/industrial-application-framework/consul-operator/pkg/apis/app/v1alpha1"
 
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -48,7 +48,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	// Watch for changes to primary resource Consul
-	err = c.Watch(&source.Kind{Type: &dac.Consul{}}, &handler.EnqueueRequestForObject{}, &CustomPredicate{})
+	err = c.Watch(&source.Kind{Type: &app.Consul{}}, &handler.EnqueueRequestForObject{}, &CustomPredicate{})
 	if err != nil {
 		return err
 	}
@@ -57,7 +57,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Watch for changes to secondary resource Pods and requeue the owner Consul
 	err = c.Watch(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
-		OwnerType:    &dac.Consul{},
+		OwnerType:    &app.Consul{},
 	})
 	if err != nil {
 		return err
@@ -89,7 +89,7 @@ func (r *ReconcileConsul) Reconcile(request reconcile.Request) (reconcile.Result
 	reqLogger.Info("Reconciling Consul")
 
 	// Fetch the Consul instance
-	instance := &dac.Consul{}
+	instance := &app.Consul{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, instance)
 	if err != nil {
 		if errors.IsNotFound(err) {

@@ -5,7 +5,7 @@
 package apis
 
 import (
-	"github.com/nokia/industrial-application-framework/consul-operator/pkg/apis/dac/v1alpha1"
+	"github.com/nokia/industrial-application-framework/consul-operator/pkg/apis/app/v1alpha1"
 )
 
 func init() {

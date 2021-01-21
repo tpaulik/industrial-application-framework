@@ -2,16 +2,12 @@
 // Licensed under the BSD 3-Clause License.
 // SPDX-License-Identifier: BSD-3-Clause
 
-package v1alpha2
+package v1alpha1
 
 import (
-	"github.com/nokia/industrial-application-framework/consul-operator/pkg/k8sdynamic"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"github.com/nokia/industrial-application-framework/consul-operator/pkg/k8sdynamic"
 )
-
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
-// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
 type AppStatus string
 
@@ -28,11 +24,13 @@ type PrivateNetworkAccess struct {
 	AdditionalRoutes []string `json:"additionalRoutes,omitempty"`
 }
 
+// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
+// NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
+
 // ConsulSpec defines the desired state of Consul
-// +k8s:openapi-gen=true
 type ConsulSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: RunCrTemplater "operator-sdk generate k8s" to regenerate code after modifying this file
+	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 	ReplicaCount         int                   `json:"replicaCount"`
 	Ports                Ports                 `json:"ports"`
@@ -48,10 +46,9 @@ type AppReporteData struct {
 }
 
 // ConsulStatus defines the observed state of Consul
-// +k8s:openapi-gen=true
 type ConsulStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: RunCrTemplater "operator-sdk generate k8s" to regenerate code after modifying this file
+	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 	PrevSpec         *ConsulSpec                     `json:"prevSpec,omitempty"`
 	AppStatus        AppStatus                       `json:"appStatus,omitempty"`
@@ -74,8 +71,8 @@ type Ports struct {
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
 
 // Consul is the Schema for the consuls API
-// +k8s:openapi-gen=true
 // +kubebuilder:subresource:status
+// +kubebuilder:resource:path=consuls,scope=Namespaced
 type Consul struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
