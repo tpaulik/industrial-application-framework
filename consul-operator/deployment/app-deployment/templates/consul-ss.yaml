@@ -1,0 +1,92 @@
+# Copyright 2020 Nokia
+# Licensed under the BSD 3-Clause License.
+# SPDX-License-Identifier: BSD-3-Clause
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: example-consul
+  labels:
+    ndac.appfw.private-network-access: private-network-for-consul
+spec:
+  selector:
+    matchLabels:
+      app: example-consul
+  updateStrategy:
+    type: RollingUpdate
+  serviceName: example-consul
+  replicas: {{.Values.replicaCount}}
+  template:
+    metadata:
+      labels:
+        app: example-consul
+        statusCheck: "true"
+    spec:
+      imagePullSecrets:
+      - name: dacsecret
+      terminationGracePeriodSeconds: 10
+      securityContext:
+        fsGroup: 1000
+      volumes:
+        - name: example-consul-data
+          persistentVolumeClaim:
+            claimName: storage-for-db
+        - name: config
+          configMap:
+            name: example-consul-cm            
+      containers:
+        - name: example-consul
+          image: registry.dac.nokia.com/public/consul:1.4.4
+          imagePullPolicy: IfNotPresent
+          resources:
+            limits:
+              cpu: 750m
+              memory: 384Mi
+          args:
+            - "agent"
+            - "-bind=0.0.0.0"
+            - "-bootstrap-expect=1"
+            - "-server"
+            - "-client=0.0.0.0"
+            - "-advertise=$(POD_IP)"
+            - "-disable-host-node-id=true"
+            - "-node=consul.default"
+            - "-datacenter=dc1"
+            - "-data-dir=/var/lib/consul"
+            - "-config-dir=/var/lib/custom-consul-config"
+          volumeMounts:
+            - mountPath: /var/lib/consul
+              name: example-consul-data
+            - mountPath: /var/lib/custom-consul-config
+              name: config
+          env:
+            - name: POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                - /bin/sh
+                - -c
+                - consul leave
+          ports:
+            - containerPort: {{.Values.service.uiport}}
+              name: ui-port
+            - containerPort: {{.Values.service.altport}}
+              name: alt-port
+            - containerPort: {{.Values.service.udpport}}
+              name: udp-port
+            - containerPort: {{.Values.service.httpsport}}
+              name: https-port
+            - containerPort: {{.Values.service.httpport}}
+              name: http-port
+            - containerPort: {{.Values.service.serflan}}
+              name: serflan
+            - containerPort: {{.Values.service.serfwan}}
+              name: serfwan
+            - containerPort: {{.Values.service.consuldns}}
+              name: consuldns
+            - containerPort: {{.Values.service.server}}
+              name: server
