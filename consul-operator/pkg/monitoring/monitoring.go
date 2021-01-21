@@ -10,7 +10,7 @@ import (
 	kubelib2 "github.com/nokia/industrial-application-framework/consul-operator/libs/kubelib"
 	app "github.com/nokia/industrial-application-framework/consul-operator/pkg/apis/app/v1alpha1"
 
-	"gitlabe2.ext.net.nokia.com/ndac-appfw/alarmlogger"
+	"github.com/nokia/industrial-application-framework/alarmlogger"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	informersv1 "k8s.io/client-go/informers/core/v1"
 	"k8s.io/client-go/informers/internalinterfaces"

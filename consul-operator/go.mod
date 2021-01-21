@@ -10,12 +10,12 @@ require (
 	github.com/gophercloud/gophercloud v0.3.0 // indirect
 	github.com/hashicorp/golang-lru v0.5.3 // indirect
 	github.com/k8snetworkplumbingwg/network-attachment-definition-client v0.0.0-20191119172530-79f836b90111
+	github.com/nokia/industrial-application-framework/alarmlogger v0.0.0-20210111120840-64e88c412a97
 	github.com/onsi/ginkgo v1.11.0 // indirect
 	github.com/operator-framework/operator-sdk v0.13.0
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4 // indirect
 	github.com/sirupsen/logrus v1.4.2
-	gitlabe2.ext.net.nokia.com/ndac-appfw/alarmlogger v0.0.0-20201018162723-ad0dc1c3e7c7
 	go.uber.org/multierr v1.6.0 // indirect
 	go.uber.org/zap v1.16.0
 	k8s.io/api v0.18.3
