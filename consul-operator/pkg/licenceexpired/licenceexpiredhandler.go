@@ -7,7 +7,7 @@ package licenceexpired
 import (
 	"context"
 
-	"gitlabe2.ext.net.nokia.com/ndac-appfw/alarmlogger"
+	"github.com/nokia/industrial-application-framework/alarmlogger"
 	app "github.com/nokia/industrial-application-framework/consul-operator/pkg/apis/app/v1alpha1"
 	"github.com/nokia/industrial-application-framework/consul-operator/pkg/k8sdynamic"
 	"github.com/nokia/industrial-application-framework/consul-operator/pkg/monitoring"

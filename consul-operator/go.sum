@@ -510,6 +510,9 @@ github.com/mxk/go-flowrate v0.0.0-20140419014527-cca7078d478f/go.mod h1:ZdcZmHo+
 github.com/nakagami/firebirdsql v0.0.0-20190310045651-3c02a58cfed8/go.mod h1:86wM1zFnC6/uDBfZGNwB65O+pR2OFi5q/YQaEUid1qA=
 github.com/naoina/go-stringutil v0.1.0/go.mod h1:XJ2SJL9jCtBh+P9q5btrd/Ylo8XwT/h1USek5+NqSA0=
 github.com/naoina/toml v0.1.1/go.mod h1:NBIhNtsFMo3G2szEBne+bO4gS192HuIYRqfvOWb4i1E=
+github.com/nokia/industrial-application-framework v0.0.0-20210111120840-64e88c412a97 h1:RXtpBogiUQ/fmsKJx8z55+5ESuvoV6O9hJCVv2d9yzE=
+github.com/nokia/industrial-application-framework/alarmlogger v0.0.0-20210111120840-64e88c412a97 h1:NPTngei+c0FdDRrog1LNrvWxfxaCKjiW7VAbMyxd400=
+github.com/nokia/industrial-application-framework/alarmlogger v0.0.0-20210111120840-64e88c412a97/go.mod h1:Y+VlyPQvusjjrjGdCVnmm43G5HWR9Djn1m5Y/kow/Ho=
 github.com/oklog/run v1.0.0/go.mod h1:dlhp/R75TPv97u0XWUtDeV/lRKWPKSdTuV0TZvrmrQA=
 github.com/oklog/ulid v1.3.1/go.mod h1:CirwcVhetQ6Lv90oh/F+FBtV6XMibvdAFo93nm5qn4U=
 github.com/onsi/ginkgo v0.0.0-20170829012221-11459a886d9c/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
