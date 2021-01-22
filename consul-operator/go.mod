@@ -6,14 +6,11 @@ require (
 	cloud.google.com/go v0.44.3 // indirect
 	github.com/go-logr/logr v0.1.0
 	github.com/go-logr/zapr v0.1.1
-	github.com/go-openapi/spec v0.19.3
 	github.com/gophercloud/gophercloud v0.3.0 // indirect
-	github.com/hashicorp/golang-lru v0.5.3 // indirect
 	github.com/k8snetworkplumbingwg/network-attachment-definition-client v0.0.0-20191119172530-79f836b90111
 	github.com/onsi/ginkgo v1.11.0 // indirect
-	github.com/operator-framework/operator-sdk v0.13.0
+	github.com/operator-framework/operator-sdk v0.15.2
 	github.com/pkg/errors v0.8.1
-	github.com/prometheus/client_model v0.0.0-20190812154241-14fe0d1b01d4 // indirect
 	github.com/sirupsen/logrus v1.4.2
 	gitlabe2.ext.net.nokia.com/ndac-appfw/alarmlogger v0.0.0-20201018162723-ad0dc1c3e7c7
 	go.uber.org/multierr v1.6.0 // indirect
@@ -21,8 +18,7 @@ require (
 	k8s.io/api v0.18.3
 	k8s.io/apimachinery v0.18.3
 	k8s.io/client-go v12.0.0+incompatible
-	k8s.io/code-generator v0.18.3 // indirect
-	k8s.io/kube-openapi v0.0.0-20200410145947-61e04a5be9a6
+	k8s.io/kube-openapi v0.0.0-20200410145947-61e04a5be9a6 // indirect
 	sigs.k8s.io/controller-runtime v0.4.0
 )
 
@@ -50,3 +46,7 @@ replace (
 	k8s.io/metrics => k8s.io/metrics v0.0.0-20191016113814-3b1a734dba6e
 	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.0.0-20191016112829-06bb3c9d77c9
 )
+
+replace github.com/docker/docker => github.com/moby/moby v0.7.3-0.20190826074503-38ab9da00309 // Required by Helm
+
+replace github.com/openshift/api => github.com/openshift/api v0.0.0-20190924102528-32369d4db2ad // Required until https://github.com/operator-framework/operator-lifecycle-manager/pull/1241 is resolved

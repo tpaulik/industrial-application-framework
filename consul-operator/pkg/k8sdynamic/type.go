@@ -16,10 +16,24 @@ type K8sDynClient struct {
 	generalClient *kubernetes.Clientset
 }
 
+type GroupVersionResource struct {
+	Group    string `json:"group,omitempty"`
+	Version  string `json:"version,omitempty"`
+	Resource string `json:"resource,omitempty"`
+}
+
+func (r GroupVersionResource) GetGvr() schema.GroupVersionResource {
+	return schema.GroupVersionResource{
+		Group : r.Group,
+		Version : r.Version,
+		Resource : r.Resource,
+	}
+}
+
 type ResourceDescriptor struct {
-	Name      string
-	Namespace string
-	Gvr       schema.GroupVersionResource
+	Name      string `json:"name,omitempty"`
+	Namespace string `json:"namespace,omitempty"`
+	Gvr       GroupVersionResource `json:"gvr,omitempty"`
 }
 
 var log = logf.Log.WithName("k8sdynamic")

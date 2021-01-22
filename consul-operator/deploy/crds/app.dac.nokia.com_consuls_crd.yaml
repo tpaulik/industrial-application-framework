@@ -104,6 +104,20 @@ spec:
               type: string
             appliedResources:
               items:
+                properties:
+                  gvr:
+                    properties:
+                      group:
+                        type: string
+                      resource:
+                        type: string
+                      version:
+                        type: string
+                    type: object
+                  name:
+                    type: string
+                  namespace:
+                    type: string
                 type: object
               type: array
             prevSpec:

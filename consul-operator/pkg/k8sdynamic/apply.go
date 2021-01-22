@@ -75,7 +75,7 @@ func (k *K8sDynClient) applyResource(object *unstructured.Unstructured, namespac
 		return ResourceDescriptor{}, errors.Wrap(err, "failed to find the resource by gvk")
 	}
 
-	gvr := schema.GroupVersionResource{Version: gvk.Version, Group: gvk.Group, Resource: apiResource.Name}
+	gvr := GroupVersionResource{Version: gvk.Version, Group: gvk.Group, Resource: apiResource.Name}
 	logger.Info("GVR of the app specific CR", "value", gvr)
 
 	resourceDescriptor := ResourceDescriptor{
@@ -85,10 +85,10 @@ func (k *K8sDynClient) applyResource(object *unstructured.Unstructured, namespac
 
 	var k8sResource dynamic.ResourceInterface
 	if apiResource.Namespaced {
-		k8sResource = k.dynClient.Resource(gvr).Namespace(namespace)
+		k8sResource = k.dynClient.Resource(gvr.GetGvr()).Namespace(namespace)
 		resourceDescriptor.Namespace = namespace
 	} else {
-		k8sResource = k.dynClient.Resource(gvr)
+		k8sResource = k.dynClient.Resource(gvr.GetGvr())
 	}
 
 	actVer, err := k8sResource.Get(object.GetName(), metav1.GetOptions{})
