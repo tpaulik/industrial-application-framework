@@ -110,7 +110,7 @@ func (cb *SampleFuncs) Expired() {
 	}
 
 	ns := cb.AppInstance.GetObjectMeta().GetNamespace()
-	svcList, err := cb.ClientSet.CoreV1().Services(ns).List(cb.getSvcListOptions())
+	svcList, err := cb.ClientSet.CoreV1().Services(ns).List(context.TODO(), cb.getSvcListOptions())
 	if nil != err {
 		log.Error(err, "Failed in listing services in ", "namespace", ns)
 		return
@@ -127,9 +127,8 @@ func (cb *SampleFuncs) Expired() {
 			Spec: svc.Spec,
 		}
 		svcs = append(svcs, toSave)
-
 		deletePolicy := v1.DeletePropagationBackground
-		if err := cb.ClientSet.CoreV1().Services(ns).Delete(name, &v1.DeleteOptions{
+		if err := cb.ClientSet.CoreV1().Services(ns).Delete(context.TODO(), name, v1.DeleteOptions{
 			PropagationPolicy: &deletePolicy}); nil != err {
 			log.Error(err, "Failed to delete ", "service", name)
 			continue
@@ -166,7 +165,7 @@ func (cb *SampleFuncs) Activate() {
 	cb.Monitor.Run()
 
 	for _, svc := range cb.services {
-		result, err := cb.ClientSet.CoreV1().Services(ns).Create(svc)
+		result, err := cb.ClientSet.CoreV1().Services(ns).Create(context.TODO(), svc, v1.CreateOptions{})
 		if nil != err {
 			log.Error(err, "Failed to create ", "service", svc.GetObjectMeta().GetName())
 			continue

@@ -5,10 +5,12 @@
 package kubelib
 
 import (
+	"context"
 	log "github.com/sirupsen/logrus"
 	apps "k8s.io/api/apps/v1beta1"
 	batch "k8s.io/api/batch/v1"
 	k8v1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
 )
@@ -42,33 +44,33 @@ type KubernetesCommand struct {
 }
 
 func (d *DeploymentCommand) Add(clientset kubernetes.Interface) error {
-	_, err := clientset.AppsV1beta1().Deployments("default").Create(d.Deployment)
+	_, err := clientset.AppsV1beta1().Deployments("default").Create(context.TODO(), d.Deployment, metav1.CreateOptions{})
 	return err
 }
 func (d *DeploymentCommand) Undo(clientset kubernetes.Interface) error {
-	err := clientset.AppsV1beta1().Deployments("default").Delete(d.Deployment.Name, nil)
+	err := clientset.AppsV1beta1().Deployments("default").Delete(context.TODO(), d.Deployment.Name, metav1.DeleteOptions{})
 	return err
 }
 func (d *DeploymentCommand) Update(clientset kubernetes.Interface) error {
-	_, err := clientset.AppsV1beta1().Deployments("default").Update(d.Deployment)
+	_, err := clientset.AppsV1beta1().Deployments("default").Update(context.TODO(), d.Deployment, metav1.UpdateOptions{})
 	return err
 }
 
 func (j *JobCommand) Add(clientset kubernetes.Interface) error {
-	_, err := clientset.BatchV1().Jobs("default").Create(j.Job)
+	_, err := clientset.BatchV1().Jobs("default").Create(context.TODO(), j.Job, metav1.CreateOptions{})
 	return err
 }
 
 func (j *JobCommand) Undo(clientset kubernetes.Interface) error {
-	err := clientset.BatchV1().Jobs("default").Delete(j.Job.Name, nil)
+	err := clientset.BatchV1().Jobs("default").Delete(context.TODO(), j.Job.Name, metav1.DeleteOptions{})
 	return err
 }
 func (j *JobCommand) Update(clientset kubernetes.Interface) error {
-	_, err := clientset.BatchV1().Jobs("default").Update(j.Job)
+	_, err := clientset.BatchV1().Jobs("default").Update(context.TODO(), j.Job, metav1.UpdateOptions{})
 	return err
 }
 func (s *ServiceCommand) Add(clientset kubernetes.Interface) error {
-	_, err := clientset.CoreV1().Services("default").Create(s.Service)
+	_, err := clientset.CoreV1().Services("default").Create(context.TODO(), s.Service, metav1.CreateOptions{})
 	return err
 
 }
@@ -76,17 +78,17 @@ func (s *ServiceCommand) Update(clientset kubernetes.Interface) error {
 	return nil
 }
 func (s *ServiceCommand) Undo(clientset kubernetes.Interface) error {
-	err := clientset.CoreV1().Services("default").Delete(s.Service.Name, nil)
+	err := clientset.CoreV1().Services("default").Delete(context.TODO(), s.Service.Name, metav1.DeleteOptions{})
 	return err
 }
 
 func (k *ConfigMapCommand) Add(clientset kubernetes.Interface) error {
-	_, err := clientset.CoreV1().ConfigMaps("default").Create(k.Configmap)
+	_, err := clientset.CoreV1().ConfigMaps("default").Create(context.TODO(), k.Configmap, metav1.CreateOptions{})
 	return err
 }
 
 func (k *ConfigMapCommand) Update(clientset kubernetes.Interface) error {
-	_, err := clientset.CoreV1().ConfigMaps("default").Update(k.Configmap)
+	_, err := clientset.CoreV1().ConfigMaps("default").Update(context.TODO(), k.Configmap, metav1.UpdateOptions{})
 	if err != nil {
 		log.Errorf("Failed to update configmap %s ", err.Error())
 	}
@@ -95,7 +97,7 @@ func (k *ConfigMapCommand) Update(clientset kubernetes.Interface) error {
 
 //Undo deletes the ConfigMap from k8s
 func (k *ConfigMapCommand) Undo(clientset kubernetes.Interface) error {
-	err := clientset.CoreV1().ConfigMaps("default").Delete(k.Configmap.Name, nil)
+	err := clientset.CoreV1().ConfigMaps("default").Delete(context.TODO(), k.Configmap.Name, metav1.DeleteOptions{})
 	if err != nil {
 		log.Errorf("Failed to update configmap %s ", err.Error())
 	}

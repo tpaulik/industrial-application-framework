@@ -5,6 +5,7 @@
 package k8sdynamic
 
 import (
+	"context"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -13,17 +14,17 @@ func (k *K8sDynClient) DeleteResources(appliedResources []ResourceDescriptor) er
 
 	for _, appliedResource := range appliedResources {
 		logger.Info("resourceDescriptor", "value", appliedResource)
-		_, err := k.dynClient.Resource(appliedResource.Gvr.GetGvr()).Namespace(appliedResource.Namespace).Get(appliedResource.Name, metav1.GetOptions{})
+		_, err := k.dynClient.Resource(appliedResource.Gvr.GetGvr()).Namespace(appliedResource.Namespace).Get(context.TODO(), appliedResource.Name, metav1.GetOptions{})
 		if err != nil {
 			logger.Info("resource doesn't exist")
 		} else {
 			deletePolicy := metav1.DeletePropagationBackground
 			gracePeriodSeconds := int64(0)
-			deleteOptions := &metav1.DeleteOptions{
+			deleteOptions := metav1.DeleteOptions{
 				GracePeriodSeconds: &gracePeriodSeconds,
 				PropagationPolicy:  &deletePolicy,
 			}
-			if err := k.dynClient.Resource(appliedResource.Gvr.GetGvr()).Namespace(appliedResource.Namespace).Delete(appliedResource.Name, deleteOptions); err != nil {
+			if err := k.dynClient.Resource(appliedResource.Gvr.GetGvr()).Namespace(appliedResource.Namespace).Delete(context.TODO(), appliedResource.Name, deleteOptions); err != nil {
 				return err
 			}
 		}

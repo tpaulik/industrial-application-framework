@@ -2,7 +2,7 @@
 # Licensed under the BSD 3-Clause License.
 # SPDX-License-Identifier: BSD-3-Clause
 
-apiVersion: apiextensions.k8s.io/v1beta1
+apiVersion: apiextensions.k8s.io/v1
 kind: CustomResourceDefinition
 metadata:
   name: consuls.app.dac.nokia.com
@@ -14,171 +14,170 @@ spec:
     plural: consuls
     singular: consul
   scope: Namespaced
-  subresources:
-    status: {}
-  validation:
-    openAPIV3Schema:
-      description: Consul is the Schema for the consuls API
-      properties:
-        apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation
-            of an object. Servers should convert recognized schemas to the latest
-            internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
-          type: string
-        kind:
-          description: 'Kind is a string value representing the REST resource this
-            object represents. Servers may infer this from the endpoint the client
-            submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-          type: string
-        metadata:
-          type: object
-        spec:
-          description: ConsulSpec defines the desired state of Consul
-          properties:
-            metricsDomainName:
-              type: string
-            ports:
-              properties:
-                altPort:
-                  type: integer
-                consulDns:
-                  type: integer
-                httpPort:
-                  type: integer
-                httpsPort:
-                  type: integer
-                serflan:
-                  type: integer
-                serfwan:
-                  type: integer
-                server:
-                  type: integer
-                udpPort:
-                  type: integer
-                uiPort:
-                  type: integer
-              type: object
-            privateNetworkAccess:
-              properties:
-                additionalRoutes:
-                  items:
-                    type: string
-                  type: array
-                apnUUID:
-                  type: string
-                customerNetwork:
-                  type: string
-              required:
-              - apnUUID
-              - customerNetwork
-              type: object
-            replicaCount:
-              description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-                Important: Run "operator-sdk generate k8s" to regenerate code after
-                modifying this file Add custom validation using kubebuilder tags:
-                https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
-              type: integer
-          required:
-          - metricsDomainName
-          - ports
-          - privateNetworkAccess
-          - replicaCount
-          type: object
-        status:
-          description: ConsulStatus defines the observed state of Consul
-          properties:
-            appReportedData:
-              properties:
-                metricsClusterIp:
-                  description: The structure of this type is up the application. AppFw
-                    will convert the whole representation to JSON.
-                  type: string
-                privateNetworkIpAddresses:
-                  additionalProperties:
-                    type: string
-                  description: Ip addresses of the services that received IP address
-                    from the private network
-                  type: object
-              type: object
-            appStatus:
-              type: string
-            appliedResources:
-              items:
-                properties:
-                  gvr:
-                    properties:
-                      group:
-                        type: string
-                      resource:
-                        type: string
-                      version:
-                        type: string
-                    type: object
-                  name:
-                    type: string
-                  namespace:
-                    type: string
-                type: object
-              type: array
-            prevSpec:
-              description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
-                of cluster Important: Run "operator-sdk generate k8s" to regenerate
-                code after modifying this file Add custom validation using kubebuilder
-                tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
-              properties:
-                metricsDomainName:
-                  type: string
-                ports:
-                  properties:
-                    altPort:
-                      type: integer
-                    consulDns:
-                      type: integer
-                    httpPort:
-                      type: integer
-                    httpsPort:
-                      type: integer
-                    serflan:
-                      type: integer
-                    serfwan:
-                      type: integer
-                    server:
-                      type: integer
-                    udpPort:
-                      type: integer
-                    uiPort:
-                      type: integer
-                  type: object
-                privateNetworkAccess:
-                  properties:
-                    additionalRoutes:
-                      items:
-                        type: string
-                      type: array
-                    apnUUID:
-                      type: string
-                    customerNetwork:
-                      type: string
-                  required:
-                  - apnUUID
-                  - customerNetwork
-                  type: object
-                replicaCount:
-                  description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-                    Important: Run "operator-sdk generate k8s" to regenerate code
-                    after modifying this file Add custom validation using kubebuilder
-                    tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
-                  type: integer
-              required:
-              - metricsDomainName
-              - ports
-              - privateNetworkAccess
-              - replicaCount
-              type: object
-          type: object
-      type: object
-  version: v1alpha1
   versions:
   - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Consul is the Schema for the consuls API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ConsulSpec defines the desired state of Consul
+            properties:
+              metricsDomainName:
+                type: string
+              ports:
+                properties:
+                  altPort:
+                    type: integer
+                  consulDns:
+                    type: integer
+                  httpPort:
+                    type: integer
+                  httpsPort:
+                    type: integer
+                  serflan:
+                    type: integer
+                  serfwan:
+                    type: integer
+                  server:
+                    type: integer
+                  udpPort:
+                    type: integer
+                  uiPort:
+                    type: integer
+                type: object
+              privateNetworkAccess:
+                properties:
+                  additionalRoutes:
+                    items:
+                      type: string
+                    type: array
+                  apnUUID:
+                    type: string
+                  customerNetwork:
+                    type: string
+                required:
+                - apnUUID
+                - customerNetwork
+                type: object
+              replicaCount:
+                description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
+                  Important: Run "operator-sdk generate k8s" to regenerate code after
+                  modifying this file Add custom validation using kubebuilder tags:
+                  https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
+                type: integer
+            required:
+            - metricsDomainName
+            - ports
+            - privateNetworkAccess
+            - replicaCount
+            type: object
+          status:
+            description: ConsulStatus defines the observed state of Consul
+            properties:
+              appReportedData:
+                properties:
+                  metricsClusterIp:
+                    description: The structure of this type is up the application.
+                      AppFw will convert the whole representation to JSON.
+                    type: string
+                  privateNetworkIpAddresses:
+                    additionalProperties:
+                      type: string
+                    description: Ip addresses of the services that received IP address
+                      from the private network
+                    type: object
+                type: object
+              appStatus:
+                type: string
+              appliedResources:
+                items:
+                  properties:
+                    gvr:
+                      properties:
+                        group:
+                          type: string
+                        resource:
+                          type: string
+                        version:
+                          type: string
+                      type: object
+                    name:
+                      type: string
+                    namespace:
+                      type: string
+                  type: object
+                type: array
+              prevSpec:
+                description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
+                  of cluster Important: Run "operator-sdk generate k8s" to regenerate
+                  code after modifying this file Add custom validation using kubebuilder
+                  tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
+                properties:
+                  metricsDomainName:
+                    type: string
+                  ports:
+                    properties:
+                      altPort:
+                        type: integer
+                      consulDns:
+                        type: integer
+                      httpPort:
+                        type: integer
+                      httpsPort:
+                        type: integer
+                      serflan:
+                        type: integer
+                      serfwan:
+                        type: integer
+                      server:
+                        type: integer
+                      udpPort:
+                        type: integer
+                      uiPort:
+                        type: integer
+                    type: object
+                  privateNetworkAccess:
+                    properties:
+                      additionalRoutes:
+                        items:
+                          type: string
+                        type: array
+                      apnUUID:
+                        type: string
+                      customerNetwork:
+                        type: string
+                    required:
+                    - apnUUID
+                    - customerNetwork
+                    type: object
+                  replicaCount:
+                    description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of
+                      cluster Important: Run "operator-sdk generate k8s" to regenerate
+                      code after modifying this file Add custom validation using kubebuilder
+                      tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
+                    type: integer
+                required:
+                - metricsDomainName
+                - ports
+                - privateNetworkAccess
+                - replicaCount
+                type: object
+            type: object
+        type: object
     served: true
     storage: true
+    subresources:
+      status: {}
