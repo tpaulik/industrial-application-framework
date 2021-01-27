@@ -64,7 +64,7 @@ rules:
   - get
 - apiGroups:
   - apps
-  `json:",omitempty"` resources:
+  resources:
   - replicasets
   verbs:
   - get
