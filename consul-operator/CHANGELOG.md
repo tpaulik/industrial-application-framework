@@ -1,3 +1,11 @@
+# v0.22
+
+* Update operator-sdk version to 0.18.0 from 0.13.0
+
+# v0.21
+
+* Change API group to app.dac.nokia.com from dac.nokia.com 
+
 # v0.8
 
 * Helm timeout increased to 30 sec

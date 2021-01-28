@@ -120,7 +120,7 @@ func (m *Monitor) Pause() {
 }
 
 func (m *Monitor) GetApplicationStatus() app.AppStatus {
-	pods, _ := m.ClientSet.CoreV1().Pods(m.Namespace).List(v1.ListOptions{LabelSelector: "statusCheck=true"})
+	pods, _ := m.ClientSet.CoreV1().Pods(m.Namespace).List(context.TODO(), v1.ListOptions{LabelSelector: "statusCheck=true"})
 	for _, pod := range pods.Items {
 		if len(pod.Status.ContainerStatuses) == 0 {
 			return app.AppStatusNotRunning

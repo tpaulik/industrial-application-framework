@@ -5,9 +5,9 @@
 package platformres
 
 import (
-	"github.com/pkg/errors"
 	kubelib2 "github.com/nokia/industrial-application-framework/consul-operator/libs/kubelib"
 	"github.com/nokia/industrial-application-framework/consul-operator/pkg/k8sdynamic"
+	"github.com/pkg/errors"
 	"io/ioutil"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -84,7 +84,7 @@ func WaitUntilResourcesGranted(resourceList []k8sdynamic.ResourceDescriptor, tim
 			resource.Name,
 			resource.Namespace,
 			"",
-			resource.Gvr,
+			resource.Gvr.GetGvr(),
 			stopper,
 			&waitGroup,
 			&result,

@@ -182,7 +182,7 @@ func (r *ReconcileConsul) handleCreate(instance *app.Consul, namespace string) (
 		func() {
 			logger.Info("Set AppReportedData")
 			//runningCallback - example, some dynamic data should be reported here which has value only after the deployment
-			svc, err := kubelib.GetKubeAPI().CoreV1().Services(namespace).Get("consul-operator-metrics", metav1.GetOptions{})
+			svc, err := kubelib.GetKubeAPI().CoreV1().Services(namespace).Get(context.TODO(), "consul-operator-metrics", metav1.GetOptions{})
 			if err != nil {
 				logger.Error(err, "Failed to read the svc of the metrics endpoint")
 				return
@@ -226,7 +226,7 @@ func getPrivateNetworkIpAddresses(namespace, pnaName string, deploymentList []de
 	k8sClient := k8sdynamic.GetDynamicK8sClient()
 
 	pnaGvr := schema.GroupVersionResource{Version: "v1alpha1", Group: "ops.dac.nokia.com", Resource: "privatenetworkaccesses"}
-	pnaObj, err := k8sClient.Resource(pnaGvr).Namespace(namespace).Get(pnaName, metav1.GetOptions{})
+	pnaObj, err := k8sClient.Resource(pnaGvr).Namespace(namespace).Get(context.TODO(), pnaName, metav1.GetOptions{})
 	if err != nil {
 		logger.Error(err, "Failed to get the PrivateNetworkAccess CR")
 		return nil
@@ -240,7 +240,7 @@ func getPrivateNetworkIpAddresses(namespace, pnaName string, deploymentList []de
 	retIpAddresses := make(map[string]string)
 	for _, deployment := range deploymentList {
 		deploymentGvr := schema.GroupVersionResource{Version: "v1", Group: "apps", Resource: string(deployment.deploymentType)}
-		deploymentObj, err := k8sClient.Resource(deploymentGvr).Namespace(namespace).Get(deployment.name, metav1.GetOptions{})
+		deploymentObj, err := k8sClient.Resource(deploymentGvr).Namespace(namespace).Get(context.TODO(), deployment.name, metav1.GetOptions{})
 		if err != nil {
 			logger.Error(err, "Failed to get the following deployment", "type", deployment.deploymentType, "name", deployment.name)
 			break

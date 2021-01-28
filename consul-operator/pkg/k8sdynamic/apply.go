@@ -5,6 +5,7 @@
 package k8sdynamic
 
 import (
+	"context"
 	regexp2 "regexp"
 	"strings"
 
@@ -75,7 +76,7 @@ func (k *K8sDynClient) applyResource(object *unstructured.Unstructured, namespac
 		return ResourceDescriptor{}, errors.Wrap(err, "failed to find the resource by gvk")
 	}
 
-	gvr := schema.GroupVersionResource{Version: gvk.Version, Group: gvk.Group, Resource: apiResource.Name}
+	gvr := GroupVersionResource{Version: gvk.Version, Group: gvk.Group, Resource: apiResource.Name}
 	logger.Info("GVR of the app specific CR", "value", gvr)
 
 	resourceDescriptor := ResourceDescriptor{
@@ -85,16 +86,16 @@ func (k *K8sDynClient) applyResource(object *unstructured.Unstructured, namespac
 
 	var k8sResource dynamic.ResourceInterface
 	if apiResource.Namespaced {
-		k8sResource = k.dynClient.Resource(gvr).Namespace(namespace)
+		k8sResource = k.dynClient.Resource(gvr.GetGvr()).Namespace(namespace)
 		resourceDescriptor.Namespace = namespace
 	} else {
-		k8sResource = k.dynClient.Resource(gvr)
+		k8sResource = k.dynClient.Resource(gvr.GetGvr())
 	}
 
-	actVer, err := k8sResource.Get(object.GetName(), metav1.GetOptions{})
+	actVer, err := k8sResource.Get(context.TODO(), object.GetName(), metav1.GetOptions{})
 	if err != nil {
 		logger.Info("resource doesn't exist, create it")
-		_, err = k8sResource.Create(object, metav1.CreateOptions{})
+		_, err = k8sResource.Create(context.TODO(), object, metav1.CreateOptions{})
 	} else {
 		logger.Info("resource already exist, update it")
 		object.SetResourceVersion(actVer.GetResourceVersion())
@@ -103,9 +104,9 @@ func (k *K8sDynClient) applyResource(object *unstructured.Unstructured, namespac
 			if err2 != nil {
 				return ResourceDescriptor{}, err
 			}
-			_, err = k8sResource.Patch(object.GetName(), types.MergePatchType, outBytes, metav1.PatchOptions{})
+			_, err = k8sResource.Patch(context.TODO(), object.GetName(), types.MergePatchType, outBytes, metav1.PatchOptions{})
 		} else {
-			_, err = k8sResource.Update(object, metav1.UpdateOptions{})
+			_, err = k8sResource.Update(context.TODO(), object, metav1.UpdateOptions{})
 		}
 	}
 

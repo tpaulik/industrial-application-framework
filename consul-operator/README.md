@@ -46,7 +46,7 @@ The yaml files of your application should be located under the deployment/app-de
 
 Example CR:
 ```yaml
-apiVersion: dac.nokia.com/v1alpha1
+apiVersion: app.dac.nokia.com/v1alpha1
 kind: Consul
 metadata:
   name: example-consul
@@ -266,13 +266,13 @@ appReportedData as well:
     ```
    
     Command to generate your own API resource:
-    >operator-sdk add api --api-version=dac.nokia.com/v1alpha1 --kind=Consul
+    >operator-sdk add api --api-version=app.dac.nokia.com/v1alpha1 --kind=Consul
   
 2. Generate the controller for your new API resource. You can again reuse the controller of the Consul
 resource or you can generate your own and copy the useful parts from the Consul controller (pkg/controller/consul).
 
     Command to generate the controller of your own resource:
-    >operator-sdk add controller --api-version=dac.nokia.com/v1alpha1 --kind=Consul
+    >operator-sdk add controller --api-version=app.dac.nokia.com/v1alpha1 --kind=Consul
 
 3. Replace the content of the deployment/app-deployment and deployment/resource-reqs directories with your
 custom application yamls.
@@ -334,7 +334,7 @@ fields.
       customresourcedefinitions:
         owned:
         - kind: Consul
-          name: consuls.dac.nokia.com
+          name: consuls.app.dac.nokia.com
           version: v1alpha1
     +     displayName: Consul application
     +     description: Consul application
@@ -368,7 +368,7 @@ you need to deploy your operator by applying the yaml files from the deploy dire
     -	deploy/role.yaml
     -	deploy/rolebindig.yaml
     -	deploy/service_account.yaml
-    -	deploy/crd/dac.nokia.com_consuls_crd.yaml
+    -	deploy/crd/app.dac.nokia.com_consuls_crd.yaml
     -	deploy/operator.yaml (this part need to be replaced “image: REPLACE_IMAGE”)
 
 2. The next step is to apply the CR from the deploy/crds/*_cr.yaml to the same namespace where your
