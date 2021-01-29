@@ -34,8 +34,8 @@ type ConsulSpec struct {
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 	ReplicaCount         int                   `json:"replicaCount"`
 	Ports                Ports                 `json:"ports"`
-	MetricsDomainName    string                `json:"metricsDomainName"`
-	PrivateNetworkAccess *PrivateNetworkAccess `json:"privateNetworkAccess"`
+	MetricsDomainName    string                `json:"metricsDomainName,omitempty"`
+	PrivateNetworkAccess *PrivateNetworkAccess `json:"privateNetworkAccess,omitempty"`
 }
 
 type AppReporteData struct {

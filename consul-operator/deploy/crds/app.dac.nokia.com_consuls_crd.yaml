@@ -79,9 +79,7 @@ spec:
                   https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
                 type: integer
             required:
-            - metricsDomainName
             - ports
-            - privateNetworkAccess
             - replicaCount
             type: object
           status:
@@ -170,9 +168,7 @@ spec:
                       tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
                     type: integer
                 required:
-                - metricsDomainName
                 - ports
-                - privateNetworkAccess
                 - replicaCount
                 type: object
             type: object
