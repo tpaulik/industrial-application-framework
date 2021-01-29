@@ -1,8 +1,8 @@
+[[ if .PrivateNetworkAccess ]]
 # Copyright 2020 Nokia
 # Licensed under the BSD 3-Clause License.
 # SPDX-License-Identifier: BSD-3-Clause
 
-[[ if .PrivateNetworkAccess ]]
 apiVersion: ops.dac.nokia.com/v1alpha1
 kind: PrivateNetworkAccess
 metadata:
