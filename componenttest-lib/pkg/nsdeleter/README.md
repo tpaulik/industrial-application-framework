@@ -1,0 +1,2 @@
+Copy of: https://github.com/kubernetes/kubernetes/tree/v1.18.2/pkg/controller/namespace/deletion
+This code is from the kubernetes repository. Since it was not a good idea to import the whole kubernetes as dependency, this dir has a copy of the namespace deleter func.
