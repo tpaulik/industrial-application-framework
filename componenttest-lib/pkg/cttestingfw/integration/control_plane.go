@@ -8,7 +8,7 @@ import (
 	"k8s.io/client-go/kubernetes/scheme"
 	"k8s.io/client-go/rest"
 
-	"gitlabe2.ext.net.nokia.com/Nokia_DAaaS/edge-microservices/componenttest-lib/pkg/cttestingfw/integration/internal"
+	"github.com/nokia/industrial-application-framework/componenttest-lib/pkg/cttestingfw/integration/internal"
 )
 
 // NewTinyCA creates a new a tiny CA utility for provisioning serving certs and client certs FOR TESTING ONLY.

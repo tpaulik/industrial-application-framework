@@ -16,7 +16,7 @@ import (
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
 
-	"gitlabe2.ext.net.nokia.com/Nokia_DAaaS/edge-microservices/componenttest-lib/pkg/cttestingfw/integration/addr"
+	"github.com/nokia/industrial-application-framework/componenttest-lib/pkg/cttestingfw/integration/addr"
 )
 
 // ProcessState define the state of the process.

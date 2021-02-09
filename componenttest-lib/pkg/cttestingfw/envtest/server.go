@@ -23,12 +23,12 @@ import (
 	"strings"
 	"time"
 
-	"gitlabe2.ext.net.nokia.com/Nokia_DAaaS/edge-microservices/componenttest-lib/pkg/cttestingfw/integration"
+	"github.com/nokia/industrial-application-framework/componenttest-lib/pkg/cttestingfw/integration"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 
-	logf "gitlabe2.ext.net.nokia.com/Nokia_DAaaS/edge-microservices/componenttest-lib/pkg/cttestingfw/log"
+	logf "github.com/nokia/industrial-application-framework/componenttest-lib/pkg/cttestingfw/log"
 )
 
 var log = logf.RuntimeLog.WithName("test-env")

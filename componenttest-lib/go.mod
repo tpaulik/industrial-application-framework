@@ -1,4 +1,4 @@
-module gitlabe2.ext.net.nokia.com/Nokia_DAaaS/edge-microservices/componenttest-lib
+module github.com/nokia/industrial-application-framework/componenttest-lib
 
 go 1.13
 

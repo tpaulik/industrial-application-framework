@@ -9,8 +9,8 @@ package matcher
 import (
 	"context"
 	"github.com/pkg/errors"
-	"gitlabe2.ext.net.nokia.com/Nokia_DAaaS/edge-microservices/componenttest-lib/pkg/env"
-	"gitlabe2.ext.net.nokia.com/Nokia_DAaaS/edge-microservices/componenttest-lib/pkg/k8sclient"
+	"github.com/nokia/industrial-application-framework/componenttest-lib/pkg/env"
+	"github.com/nokia/industrial-application-framework/componenttest-lib/pkg/k8sclient"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"

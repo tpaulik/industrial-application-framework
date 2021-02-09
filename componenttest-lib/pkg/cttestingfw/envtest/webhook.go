@@ -33,8 +33,8 @@ import (
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"gitlabe2.ext.net.nokia.com/Nokia_DAaaS/edge-microservices/componenttest-lib/pkg/cttestingfw/integration"
-	"gitlabe2.ext.net.nokia.com/Nokia_DAaaS/edge-microservices/componenttest-lib/pkg/cttestingfw/integration/addr"
+	"github.com/nokia/industrial-application-framework/componenttest-lib/pkg/cttestingfw/integration"
+	"github.com/nokia/industrial-application-framework/componenttest-lib/pkg/cttestingfw/integration/addr"
 	"sigs.k8s.io/yaml"
 )
 

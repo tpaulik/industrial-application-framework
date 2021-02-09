@@ -5,7 +5,7 @@ import (
 	"io"
 	"os/exec"
 
-	"gitlabe2.ext.net.nokia.com/Nokia_DAaaS/edge-microservices/componenttest-lib/pkg/cttestingfw/integration/internal"
+	"github.com/nokia/industrial-application-framework/componenttest-lib/pkg/cttestingfw/integration/internal"
 )
 
 // KubeCtl is a wrapper around the kubectl binary.
