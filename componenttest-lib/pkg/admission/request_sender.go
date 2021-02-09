@@ -31,7 +31,7 @@ func SendAdmissionReviewRequest(url string, admissionReviewReq v1beta1.Admission
 	if err != nil {
 		return &v1beta1.AdmissionReview{}, err
 	} else if resp.StatusCode != 200 {
-		return &v1beta1.AdmissionReview{}, errors.New("Response status code is: " + string(resp.StatusCode))
+		return &v1beta1.AdmissionReview{}, errors.New("Response status code is: " + string(rune(resp.StatusCode)))
 	}
 	ar, err := parseResponseAsAdmissionReview(resp.Body)
 	if err != nil {
@@ -58,7 +58,7 @@ func (webhook *AsyncAdmissionRequestSender) SendAdmissionReviewRequestAsync(admi
 			webhook.errChannel <- err
 			return
 		} else if resp.StatusCode != 200 {
-			webhook.errChannel <- errors.New("Response status code is: " + string(resp.StatusCode))
+			webhook.errChannel <- errors.New("Response status code is: " + string(rune(resp.StatusCode)))
 			return
 		}
 		webhook.httpResponse = *resp
