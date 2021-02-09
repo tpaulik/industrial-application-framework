@@ -34,3 +34,9 @@ jobs:
     - name: Test alarmlogger
       run: go test -v ./...
       working-directory: ./alarmlogger
+    - name: Build component-test library
+      run: go build -v ./...
+      working-directory: ./componenttest-lib
+    - name: Test component-test library
+      run: go test -v ./...
+      working-directory: ./componenttest-lib
