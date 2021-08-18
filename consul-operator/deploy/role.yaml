@@ -69,9 +69,8 @@ rules:
   verbs:
   - get
 - apiGroups:
-  - dac.nokia.com
+  - app.dac.nokia.com
   resources:
-  - '*'
   - consuls
   verbs:
   - create
@@ -85,7 +84,6 @@ rules:
   - ops.dac.nokia.com
   resources:
   - '*'
-  - consuls
   verbs:
   - create
   - delete
@@ -95,15 +93,8 @@ rules:
   - update
   - watch
 - apiGroups:
-  - app.dac.nokia.com
+  - "extensions"
   resources:
-  - '*'
-  - consuls
+  - ingresses
   verbs:
-  - create
-  - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
+  - '*'
