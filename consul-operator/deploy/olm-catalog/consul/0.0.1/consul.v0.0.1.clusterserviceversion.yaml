@@ -12,6 +12,11 @@ metadata:
         requests:
         - name: storage-for-db
           size: 500Mi
+      resource-quota:
+        hard:
+          limits.memory: 1Gi
+          limits.cpu: 750m
+          pods: 3          
   name: consul.v0.0.1
   namespace: placeholder
 spec:
