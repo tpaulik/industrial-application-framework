@@ -17,7 +17,7 @@ jobs:
       with:
         go-version: 1.15      
     - name: Setup operator-sdk Action
-      uses: shivanshs9/setup-k8s-operator-sdk@a5ce4e979dc081df348eb7c3f0564dbf6d0356f0
+      uses: shivanshs9/setup-k8s-operator-sdk@v1.1.5
       with:
         version: "^0.19.3"
       env: 
