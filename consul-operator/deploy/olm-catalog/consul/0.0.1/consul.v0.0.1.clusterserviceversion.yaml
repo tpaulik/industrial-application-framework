@@ -12,6 +12,11 @@ metadata:
         requests:
         - name: storage-for-db
           size: 500Mi
+      resource-quota:
+        hard:
+          limits.memory: 1Gi
+          limits.cpu: 750m
+          pods: 3          
   name: consul.v0.0.1
   namespace: placeholder
 spec:
@@ -57,7 +62,7 @@ spec:
                 - name: DEPLOYMENT_DIR
                   value: /usr/src/app
                 - name: RESREQ_DIR
-                  value: /usr/src/app/resource-reqs
+                  value: /usr/src/app/resource-reqs-generated
                 image: docker-registry.vepro.nsn-rdnet.com/appfw/consul-operator:0.1
                 imagePullPolicy: Always
                 name: consul-operator
@@ -78,7 +83,13 @@ spec:
           - configmaps
           - secrets
           verbs:
-          - '*'
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch          
         - apiGroups:
           - apps
           resources:
@@ -87,7 +98,13 @@ spec:
           - replicasets
           - statefulsets
           verbs:
-          - '*'
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch          
         - apiGroups:
           - monitoring.coreos.com
           resources:
@@ -118,17 +135,33 @@ spec:
         - apiGroups:
           - app.dac.nokia.com
           resources:
-          - '*'
           - consuls
           verbs:
-          - '*'
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
         - apiGroups:
-            - ops.dac.nokia.com
+          - ops.dac.nokia.com
           resources:
-            - '*'
-            - consuls
+          - '*'
           verbs:
-            - '*'
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - "extensions"
+          resources:
+          - ingresses
+          verbs:
+          - '*'          
         serviceAccountName: consul-operator
     strategy: deployment
   installModes:
