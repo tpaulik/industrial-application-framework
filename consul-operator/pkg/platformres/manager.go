@@ -34,8 +34,8 @@ func ApplyPlatformResourceRequests(namespace string) ([]k8sdynamic.ResourceDescr
 	logger.Info("Called")
 
 	dynClient := k8sdynamic.New(kubelib2.GetKubeAPI())
-
 	dir := os.Getenv(ResourceRequestPath)
+	logger.Info("Reading resource requestrs from " + dir)
 	if dir == "" {
 		return nil, errors.New(ResourceRequestPath + " is not set")
 	}
@@ -136,10 +136,12 @@ func startWatchResourceRequest(name string, namespace string, resourceVersion st
 		name, namespace, resourceVersion, gvr,
 		cache.ResourceEventHandlerFuncs{
 			DeleteFunc: func(obj interface{}) {
+				logger.Info("Delete resource detected")
 				close(stopper)
 				waitGroup.Done()
 			},
 			UpdateFunc: func(oldObj, newObj interface{}) {
+				logger.Info("Resource request modification detected")
 				logger.V(1).Info("Resource request modification detected")
 
 				newValue, _ := getApprovalStatus(newObj)
@@ -149,9 +151,11 @@ func startWatchResourceRequest(name string, namespace string, resourceVersion st
 					switch newValue {
 					case ApprovalStatusApproved:
 						*result = true
+						logger.Info("Resource approved")
 						break
 					default:
 						*result = false
+						logger.Info("Cannot create resource")
 						break
 					}
 					waitGroup.Done()
@@ -159,6 +163,7 @@ func startWatchResourceRequest(name string, namespace string, resourceVersion st
 				}
 			},
 			AddFunc: func(obj interface{}) {
+				logger.Info("Add resource detected")
 				value, _ := getApprovalStatus(obj)
 				if value == ApprovalStatusApproved {
 					*result = true
