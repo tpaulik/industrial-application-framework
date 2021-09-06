@@ -231,8 +231,8 @@ func getPrivateNetworkIpAddresses(namespace, pnaName string, deploymentList []de
 		logger.Error(err, "Failed to get the PrivateNetworkAccess CR")
 		return nil
 	}
-	assignedNetwork, found, _ := unstructured.NestedString(pnaObj.Object, "status", "assignedNetwork")
-	if found && assignedNetwork != "" {
+	assignedNetwork, found, _ := unstructured.NestedStringMap(pnaObj.Object, "status", "assignedNetwork")
+	if found && assignedNetwork != nil {
 		logger.Info("New networking used")
 	}
 	pnaNetworkName, found, _ := unstructured.NestedString(pnaObj.Object, "status", "appNetworkName")
