@@ -8,7 +8,7 @@ import (
 	"context"
 
 	"github.com/nokia/industrial-application-framework/alarmlogger"
-	app "github.com/nokia/industrial-application-framework/consul-operator/pkg/apis/app/v1alpha1"
+	app "github.com/nokia/industrial-application-framework/consul-operator/api/v1alpha1"
 	"github.com/nokia/industrial-application-framework/consul-operator/pkg/k8sdynamic"
 	"github.com/nokia/industrial-application-framework/consul-operator/pkg/monitoring"
 
@@ -19,7 +19,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 const (
@@ -98,7 +98,7 @@ func (cb *SampleFuncs) Expired() {
 
 	alarmlogger.RaiseAlarm(alarmlogger.AppAlarm, &alarmlogger.AlarmDetails{
 		Name:     "LicenceExpired",
-		ID: 	  "2",
+		ID:       "2",
 		Severity: alarmlogger.Warning,
 		Text:     "Application licence is invalid",
 	})
@@ -151,10 +151,10 @@ func (cb *SampleFuncs) Activate() {
 	log.Info("Activate")
 
 	alarmlogger.ClearAlarm(alarmlogger.AppAlarm, &alarmlogger.AlarmDetails{
-		Name: 	  "LicenceExpired",
-		ID: 	  "2",
+		Name:     "LicenceExpired",
+		ID:       "2",
 		Severity: alarmlogger.Warning,
-		Text: 	  "Application licence is valid",
+		Text:     "Application licence is valid",
 	})
 
 	ns := cb.AppInstance.GetObjectMeta().GetNamespace()
