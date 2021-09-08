@@ -23,7 +23,7 @@ jobs:
       env: 
         ACTIONS_ALLOW_UNSECURE_COMMANDS: true   
     - name: Build consul-operator
-      run: operator-sdk build consul-operator:test
+      run: make docker-build IMG=consul-operator:test
       working-directory: ./consul-operator
     - name: Test consul-operator
       run: go test -v ./...
