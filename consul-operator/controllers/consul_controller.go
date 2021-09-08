@@ -18,11 +18,10 @@ package controllers
 
 import (
 	"context"
-	"github.com/operator-framework/operator-lib/handler"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
-	runtimeHandler "sigs.k8s.io/controller-runtime/pkg/handler"
+	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
@@ -47,7 +46,7 @@ type ConsulReconciler struct {
 //+kubebuilder:rbac:groups=app.dac.nokia.com,resources=consuls/finalizers,verbs=update
 //+kubebuilder:rbac:groups=ops.dac.nokia.com,resources=*,verbs=create;delete;get;list;patch;update;watch
 //+kubebuilder:rbac:groups=extensions,resources=ingresses,verbs=*
-//+kubebuilder:rbac:groups="",resources=pods;services;endpoints;persistentvolumeclaims;events;configmaps;secrets,verbs=create;delete;get;list;watch;patch;update
+//+kubebuilder:rbac:groups="",resources=pods;services;endpoints;events;configmaps;secrets,verbs=create;delete;get;list;watch;patch;update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -90,14 +89,14 @@ func (r *ConsulReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	}
 
 	// Watch for changes to primary resource Consul
-	err = c.Watch(&source.Kind{Type: &app.Consul{}}, &handler.InstrumentedEnqueueRequestForObject{}, &CustomPredicate{})
+	err = c.Watch(&source.Kind{Type: &app.Consul{}}, &handler.EnqueueRequestForObject{}, &CustomPredicate{})
 	if err != nil {
 		return err
 	}
 
 	// TODO(user): Modify this to be the types you create that are owned by the primary resource
 	// Watch for changes to secondary resource Pods and requeue the owner Consul
-	err = c.Watch(&source.Kind{Type: &corev1.Pod{}}, &runtimeHandler.EnqueueRequestForOwner{
+	err = c.Watch(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForOwner{
 		IsController: true,
 		OwnerType:    &app.Consul{},
 	})
