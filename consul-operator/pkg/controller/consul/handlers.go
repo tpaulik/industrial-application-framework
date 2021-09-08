@@ -241,7 +241,7 @@ func getPrivateNetworkIpAddresses(namespace, pnaName string, deploymentList []de
 				logger.Error(err, "Failed to get the following deployment", "type", deployment.deploymentType, "name", deployment.name)
 				break
 			}
-			value, found, _ := unstructured.NestedString(deploymentObj.Object, "spec", "template", "initContainers", "args")
+			value, found, _ := unstructured.NestedString(deploymentObj.Object, "spec", "template","spec", "initContainers", "args")
 			if !found {
 				logger.Error(nil, "Failed args", "type", deployment.deploymentType, "name", deployment.name)
 				break
