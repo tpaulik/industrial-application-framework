@@ -234,6 +234,21 @@ func getPrivateNetworkIpAddresses(namespace, pnaName string, deploymentList []de
 	assignedNetwork, found, _ := unstructured.NestedStringMap(pnaObj.Object, "status", "assignedNetwork")
 	if found && assignedNetwork != nil {
 		logger.Info("New networking used")
+		for _, deployment := range deploymentList {
+			deploymentGvr := schema.GroupVersionResource{Version: "v1", Group: "apps", Resource: string(deployment.deploymentType)}
+			deploymentObj, err := k8sClient.Resource(deploymentGvr).Namespace(namespace).Get(context.TODO(), deployment.name, metav1.GetOptions{})
+			if err != nil {
+				logger.Error(err, "Failed to get the following deployment", "type", deployment.deploymentType, "name", deployment.name)
+				break
+			}
+			value, found, _ := unstructured.NestedString(deploymentObj.Object, "spec", "template", "initContainers", "args")
+			if !found {
+				logger.Error(nil, "Failed args", "type", deployment.deploymentType, "name", deployment.name)
+				break
+			}
+			logger.Info("value" + value)
+			return nil
+		}
 	}
 	pnaNetworkName, found, _ := unstructured.NestedString(pnaObj.Object, "status", "appNetworkName")
 	if !found {
