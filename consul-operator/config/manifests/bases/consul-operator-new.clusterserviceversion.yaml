@@ -1,0 +1,48 @@
+# Copyright 2020 Nokia
+# Licensed under the BSD 3-Clause License.
+# SPDX-License-Identifier: BSD-3-Clause
+
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    alm-examples: '[]'
+    capabilities: Basic Install
+  name: consul-operator-new.v0.0.0
+  namespace: placeholder
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions:
+    owned:
+    - description: Consul is the Schema for the consuls API
+      displayName: Consul
+      kind: Consul
+      name: consuls.app.dac.nokia.com
+      version: v1alpha1
+  description: consul
+  displayName: consul-operator
+  icon:
+  - base64data: ""
+    mediatype: ""
+  install:
+    spec:
+      deployments: null
+    strategy: ""
+  installModes:
+  - supported: false
+    type: OwnNamespace
+  - supported: false
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+  keywords:
+  - consul
+  links:
+  - name: Consul Operator New
+    url: https://consul-operator-new.domain
+  maturity: alpha
+  provider:
+    name: nokia
+  version: 0.0.0
