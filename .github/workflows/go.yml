@@ -25,9 +25,6 @@ jobs:
     - name: Build consul-operator
       run: make docker-build IMG=consul-operator:test
       working-directory: ./consul-operator
-    - name: Test consul-operator
-      run: go test -v ./...
-      working-directory: ./consul-operator
     - name: Build alarmlogger
       run: go build -v ./...
       working-directory: ./alarmlogger
