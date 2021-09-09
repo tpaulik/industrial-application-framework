@@ -258,7 +258,7 @@ func getPrivateNetworkIpAddresses(namespace, pnaName string, deploymentList []de
 		}
 		for _, netAnn := range parsedNetAnn {
 			if netAnn.Name == pnaNetworkName {
-				retIpAddresses[string(deployment.deploymentType)+"/"+deployment.name] = netAnn.IPRequest[0] //TODO
+				retIpAddresses[string(deployment.deploymentType)+"/"+deployment.name] = netAnn.IPRequest[0]
 			}
 		}
 	}
