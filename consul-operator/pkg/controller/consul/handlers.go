@@ -10,6 +10,7 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"reflect"
+	"regexp"
 	"time"
 
 	netattv1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
@@ -251,13 +252,23 @@ func getPrivateNetworkIpAddresses(namespace, pnaName string, deploymentList []de
 				if initContainer.(map[string]interface{})["name"] == "appfw-private-network-routing" {
 					if args := initContainer.(map[string]interface{})["args"]; args != "" {
 						logger.Info("value" + args.([]interface{})[0].(string))
-						break
+						rg, err := regexp.Compile(`ip\s*link\s*add\s*name\s*.*?\s*type\s*dummy\s*&&\s*ip\s*addr\s*add\s*(?P<customerIP>.*?)/32`)
+						if err != nil {
+							logger.Error(err, "failed to compile the regular expression")
+							return nil
+						}
+						result := rg.FindStringSubmatch(args.([]interface{})[0].(string))
+						if(result != nil){
+							logger.Info("Found IP to use from dummy interface" + result[1])
+							retIpAddresses := make(map[string]string)
+							retIpAddresses[string(deployment.deploymentType)+"/"+deployment.name] = result[1]
+							return retIpAddresses
+						}
 					} else {
 						logger.Error(nil, "Failed args", "type", deployment.deploymentType, "name", deployment.name)
 					}
 				}
 			}
-
 			return nil
 		}
 	}
