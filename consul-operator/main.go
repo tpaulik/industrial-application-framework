@@ -17,8 +17,10 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
+	"github.com/operator-framework/operator-lib/leader"
 	"os"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
@@ -70,6 +72,14 @@ func main() {
 	if err != nil {
 		setupLog.Error(err, "unable to get WatchNamespace, "+
 			"the manager will watch and manage resources in all namespaces")
+	}
+
+	// Become the leader before proceeding
+	// to keep compatibility with previous operator sdk
+	err = leader.Become(context.TODO(), "consul-operator-lock")
+	if err != nil {
+		setupLog.Error(err, "unable to become the leader")
+		os.Exit(1)
 	}
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
