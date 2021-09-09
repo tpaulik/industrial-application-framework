@@ -241,12 +241,23 @@ func getPrivateNetworkIpAddresses(namespace, pnaName string, deploymentList []de
 				logger.Error(err, "Failed to get the following deployment", "type", deployment.deploymentType, "name", deployment.name)
 				break
 			}
-			value, found, _ := unstructured.NestedString(deploymentObj.Object, "spec", "template","spec", "initContainers", "args")
-			if !found {
-				logger.Error(nil, "Failed args", "type", deployment.deploymentType, "name", deployment.name)
+			initContainers, found, err := unstructured.NestedSlice(deploymentObj.Object, "spec", "template", "spec", "initContainers")
+			if !found || err != nil {
+				logger.Error(err, "Failed initContainers", "type", deployment.deploymentType, "name", deployment.name)
 				break
 			}
-			logger.Info("value" + value)
+			for _, initContainer := range initContainers {
+				logger.Info("name:" + initContainer.(map[string]interface{})["name"].(string))
+				if initContainer.(map[string]interface{})["name"] == "appfw-private-network-routing" {
+					if args := initContainer.(map[string]interface{})["args"]; args != "" {
+						logger.Info("value" + args.([]interface{})[0].(string))
+						break
+					} else {
+						logger.Error(nil, "Failed args", "type", deployment.deploymentType, "name", deployment.name)
+					}
+				}
+			}
+
 			return nil
 		}
 	}
