@@ -1,3 +1,7 @@
+# Copyright 2021 Nokia
+# Licensed under the BSD 3-Clause License.
+# SPDX-License-Identifier: BSD-3-Clause
+
 # Build the manager binary
 FROM golang:1.16 as builder
 
