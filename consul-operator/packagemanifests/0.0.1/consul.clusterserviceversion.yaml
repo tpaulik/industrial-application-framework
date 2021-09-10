@@ -20,7 +20,7 @@ metadata:
           limits.memory: 1Gi
           limits.cpu: 750m
           pods: 3          
-  name: consul-operator-new.v0.0.1
+  name: consul.v0.0.1
   namespace: placeholder
 spec:
   apiservicedefinitions: {}
@@ -183,7 +183,7 @@ spec:
   - consul
   links:
   - name: Consul Operator New
-    url: https://consul-operator-new.domain
+    url: https://consul.domain
   maturity: alpha
   provider:
     name: nokia

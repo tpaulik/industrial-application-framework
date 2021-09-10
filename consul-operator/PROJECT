@@ -4,7 +4,7 @@ layout:
 plugins:
   manifests.sdk.operatorframework.io/v2: {}
   scorecard.sdk.operatorframework.io/v2: {}
-projectName: consul-operator-new
+projectName: consul
 repo: github.com/nokia/industrial-application-framework/consul-operator
 resources:
 - api:
