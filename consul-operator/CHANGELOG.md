@@ -1,10 +1,14 @@
+# v0.23
+
+* Updated operator sdk version from 0.18.0 to 1.11.0
+
 # v0.22
 
 * Update operator-sdk version to 0.18.0 from 0.13.0
 
 # v0.21
 
-* Change API group to app.dac.nokia.com from dac.nokia.com 
+* Change API group to app.dac.nokia.com from dac.nokia.com
 
 # v0.8
 
@@ -25,7 +29,7 @@
 # v0.5
 
 * Fix: in case of the restart of the consul-operator the applied resources will be put again to the CR. This can cause problem during the undeployment. The app can stuck.
-* Fix: TweakListOptionsFunc list options was overwritten with a static function, this cause extra events in the informer handler which was not real events 
+* Fix: TweakListOptionsFunc list options was overwritten with a static function, this cause extra events in the informer handler which was not real events
 
 # v0.4
 

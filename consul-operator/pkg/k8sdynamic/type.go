@@ -8,7 +8,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
 	"k8s.io/client-go/kubernetes"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 type K8sDynClient struct {
@@ -24,15 +24,15 @@ type GroupVersionResource struct {
 
 func (r GroupVersionResource) GetGvr() schema.GroupVersionResource {
 	return schema.GroupVersionResource{
-		Group : r.Group,
-		Version : r.Version,
-		Resource : r.Resource,
+		Group:    r.Group,
+		Version:  r.Version,
+		Resource: r.Resource,
 	}
 }
 
 type ResourceDescriptor struct {
-	Name      string `json:"name,omitempty"`
-	Namespace string `json:"namespace,omitempty"`
+	Name      string               `json:"name,omitempty"`
+	Namespace string               `json:"namespace,omitempty"`
 	Gvr       GroupVersionResource `json:"gvr,omitempty"`
 }
 

@@ -10,7 +10,6 @@ metadata:
     name: example-consul
     deleteOnLicenceExpiration: "true"
 spec:
-  clusterIP: None
   ports:
     - name: http
       port: {{ .Values.service.httpport }}
