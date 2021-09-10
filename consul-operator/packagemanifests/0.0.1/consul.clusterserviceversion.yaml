@@ -171,7 +171,7 @@ spec:
         serviceAccountName: consul-operator
     strategy: deployment
   installModes:
-  - supported: false
+  - supported: true
     type: OwnNamespace
   - supported: true
     type: SingleNamespace

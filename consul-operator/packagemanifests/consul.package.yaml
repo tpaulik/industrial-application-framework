@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 channels:
-- currentCSV: consul-operator-new.v0.0.1
+- currentCSV: consul.v0.0.1
   name: alpha
 defaultChannel: alpha
-packageName: consul-operator-new
+packageName: consul
