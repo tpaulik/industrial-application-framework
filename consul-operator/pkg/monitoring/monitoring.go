@@ -7,8 +7,8 @@ package monitoring
 import (
 	"context"
 
+	app "github.com/nokia/industrial-application-framework/consul-operator/api/v1alpha1"
 	kubelib2 "github.com/nokia/industrial-application-framework/consul-operator/libs/kubelib"
-	app "github.com/nokia/industrial-application-framework/consul-operator/pkg/apis/app/v1alpha1"
 
 	"github.com/nokia/industrial-application-framework/alarmlogger"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -17,7 +17,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 type Monitor struct {
@@ -78,7 +78,7 @@ func (m *Monitor) Run() {
 							// clear alarm
 							alarmlogger.ClearAlarm(alarmlogger.AppAlarm, &alarmlogger.AlarmDetails{
 								Name:     "AppNotRunning",
-								ID: 	  "1",
+								ID:       "1",
 								Severity: alarmlogger.Warning,
 								Text:     "All components are now ready",
 							})
@@ -90,7 +90,7 @@ func (m *Monitor) Run() {
 							// raise alarm
 							alarmlogger.RaiseAlarm(alarmlogger.AppAlarm, &alarmlogger.AlarmDetails{
 								Name:     "AppNotRunning",
-								ID: 	  "1",
+								ID:       "1",
 								Severity: alarmlogger.Warning,
 								Text:     "Not all components are ready",
 							})

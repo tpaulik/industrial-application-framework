@@ -1,0 +1,24 @@
+# Copyright 2021 Nokia
+# Licensed under the BSD 3-Clause License.
+# SPDX-License-Identifier: BSD-3-Clause
+
+# permissions for end users to view consuls.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: consul-viewer-role
+rules:
+- apiGroups:
+  - app.dac.nokia.com
+  resources:
+  - consuls
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - app.dac.nokia.com
+  resources:
+  - consuls/status
+  verbs:
+  - get

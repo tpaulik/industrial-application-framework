@@ -6,15 +6,15 @@ package template
 
 import (
 	"bytes"
-	"github.com/pkg/errors"
 	"github.com/nokia/industrial-application-framework/consul-operator/pkg/util/copy"
+	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strings"
 	templ "text/template"
 
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 type Templater struct {

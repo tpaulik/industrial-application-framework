@@ -10,3 +10,4 @@ spec:
   requestedResources:
     cpu: 750m
     memory: 384Mi
+    pods: 3

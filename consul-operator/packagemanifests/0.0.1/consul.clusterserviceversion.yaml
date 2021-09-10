@@ -1,0 +1,190 @@
+# Copyright 2020 Nokia
+# Licensed under the BSD 3-Clause License.
+# SPDX-License-Identifier: BSD-3-Clause
+
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    alm-examples: '[]'
+    capabilities: Basic Install
+    operators.operatorframework.io/builder: operator-sdk-v1.10.0+git
+    operators.operatorframework.io/project_layout: go.kubebuilder.io/v3
+    application-constraints: |
+      storage-service:
+        requests:
+        - name: storage-for-db
+          size: 500Mi
+      resource-quota:
+        hard:
+          limits.memory: 1Gi
+          limits.cpu: 750m
+          pods: 3          
+  name: consul.v0.0.1
+  namespace: placeholder
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions:
+    owned:
+    - kind: Consul
+      name: consuls.app.dac.nokia.com
+      version: v1alpha1
+      displayName: Consul application
+      description: Consul application
+  description: consul
+  displayName: consul-operator
+  icon:
+  - base64data: ""
+    mediatype: ""
+  install:
+    spec:
+      deployments:
+      - name: consul-operator
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              name: consul-operator
+          strategy: {}
+          template:
+            metadata:
+              labels:
+                name: consul-operator
+            spec:
+              containers:
+              - command:
+                - consul-operator
+                env:
+                - name: WATCH_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.annotations['olm.targetNamespaces']
+                - name: POD_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+                - name: OPERATOR_NAME
+                  value: consul-operator
+                - name: DEPLOYMENT_DIR
+                  value: /usr/src/app
+                - name: RESREQ_DIR
+                  value: /usr/src/app/resource-reqs-generated
+                image: docker-registry.vepro.nsn-rdnet.com/appfw/consul-operator:0.1
+                imagePullPolicy: Always
+                name: consul-operator
+                resources: {}
+              serviceAccountName: consul-operator
+              imagePullSecrets:
+                - name: pull-secret
+      permissions:
+      - rules:
+        - apiGroups:
+          - ""
+          resources:
+          - pods
+          - services
+          - endpoints
+          - persistentvolumeclaims
+          - events
+          - configmaps
+          - secrets
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch          
+        - apiGroups:
+          - apps
+          resources:
+          - deployments
+          - daemonsets
+          - replicasets
+          - statefulsets
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch          
+        - apiGroups:
+          - monitoring.coreos.com
+          resources:
+          - servicemonitors
+          verbs:
+          - get
+          - create
+        - apiGroups:
+          - apps
+          resourceNames:
+          - consul-operator
+          resources:
+          - deployments/finalizers
+          verbs:
+          - update
+        - apiGroups:
+          - ""
+          resources:
+          - pods
+          verbs:
+          - get
+        - apiGroups:
+          - apps
+          resources:
+          - replicasets
+          verbs:
+          - get
+        - apiGroups:
+          - app.dac.nokia.com
+          resources:
+          - consuls
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - ops.dac.nokia.com
+          resources:
+          - '*'
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - "extensions"
+          resources:
+          - ingresses
+          verbs:
+          - '*'          
+        serviceAccountName: consul-operator
+    strategy: deployment
+  installModes:
+  - supported: true
+    type: OwnNamespace
+  - supported: true
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+  keywords:
+  - consul
+  links:
+  - name: Consul Operator New
+    url: https://consul.domain
+  maturity: alpha
+  provider:
+    name: nokia
+  version: 0.0.1

@@ -15,18 +15,9 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v2
       with:
-        go-version: 1.15      
-    - name: Setup operator-sdk Action
-      uses: shivanshs9/setup-k8s-operator-sdk@v1.1.5
-      with:
-        version: "^0.19.3"
-      env: 
-        ACTIONS_ALLOW_UNSECURE_COMMANDS: true   
+        go-version: 1.16
     - name: Build consul-operator
-      run: operator-sdk build consul-operator:test
-      working-directory: ./consul-operator
-    - name: Test consul-operator
-      run: go test -v ./...
+      run: make docker-build IMG=consul-operator:test
       working-directory: ./consul-operator
     - name: Build alarmlogger
       run: go build -v ./...
