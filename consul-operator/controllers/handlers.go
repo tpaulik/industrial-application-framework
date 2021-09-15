@@ -310,7 +310,7 @@ func getAddressOfDummyInterface(namespace string, deploymentList []deploymentId,
 						return retIpAddresses
 					}
 				} else {
-					logger.Error(nil, "Failed to read args", "type", deployment.deploymentType, "name", deployment.name)
+					logger.Error(nil, "Failed to read init container args", "type", deployment.deploymentType, "name", deployment.name)
 				}
 			}
 		}
