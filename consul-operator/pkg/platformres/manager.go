@@ -20,7 +20,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-var log = logf.Log.WithName("helm")
+var log = logf.Log.WithName("platformres")
 
 const (
 	ResourceRequestPath = "RESREQ_DIR"
@@ -34,7 +34,6 @@ func ApplyPlatformResourceRequests(namespace string) ([]k8sdynamic.ResourceDescr
 	logger.Info("Called")
 
 	dynClient := k8sdynamic.New(kubelib2.GetKubeAPI())
-
 	dir := os.Getenv(ResourceRequestPath)
 	if dir == "" {
 		return nil, errors.New(ResourceRequestPath + " is not set")
@@ -136,6 +135,7 @@ func startWatchResourceRequest(name string, namespace string, resourceVersion st
 		name, namespace, resourceVersion, gvr,
 		cache.ResourceEventHandlerFuncs{
 			DeleteFunc: func(obj interface{}) {
+				logger.V(1).Info("Delete resource detected")
 				close(stopper)
 				waitGroup.Done()
 			},
@@ -149,9 +149,11 @@ func startWatchResourceRequest(name string, namespace string, resourceVersion st
 					switch newValue {
 					case ApprovalStatusApproved:
 						*result = true
+						logger.Info("Resource approved")
 						break
 					default:
 						*result = false
+						logger.Info("Cannot create resource")
 						break
 					}
 					waitGroup.Done()
@@ -159,6 +161,7 @@ func startWatchResourceRequest(name string, namespace string, resourceVersion st
 				}
 			},
 			AddFunc: func(obj interface{}) {
+				logger.V(1).Info("Add resource detected")
 				value, _ := getApprovalStatus(obj)
 				if value == ApprovalStatusApproved {
 					*result = true
