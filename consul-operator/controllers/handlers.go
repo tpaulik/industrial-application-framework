@@ -290,14 +290,13 @@ func getAddressOfDummyInterface(namespace string, deploymentList []deploymentId,
 		}
 		initContainers, found, err := unstructured.NestedSlice(deploymentObj.Object, "spec", "template", "spec", "initContainers")
 		if !found || err != nil {
-			logger.Error(err, "Failed initContainers", "type", deployment.deploymentType, "name", deployment.name)
+			logger.Error(err, "Failed to read initContainers", "type", deployment.deploymentType, "name", deployment.name)
 			break
 		}
 		for _, initContainer := range initContainers {
 			logger.Info("name:" + initContainer.(map[string]interface{})["name"].(string))
 			if initContainer.(map[string]interface{})["name"] == "appfw-private-network-routing" {
 				if args := initContainer.(map[string]interface{})["args"]; args != "" {
-					logger.Info("value" + args.([]interface{})[0].(string))
 					rg, err := regexp.Compile(`ip\s*link\s*add\s*name\s*.*?\s*type\s*dummy\s*&&\s*ip\s*addr\s*add\s*(?P<customerIP>.*?)/32`)
 					if err != nil {
 						logger.Error(err, "failed to compile the regular expression")
@@ -311,7 +310,7 @@ func getAddressOfDummyInterface(namespace string, deploymentList []deploymentId,
 						return retIpAddresses
 					}
 				} else {
-					logger.Error(nil, "Failed args", "type", deployment.deploymentType, "name", deployment.name)
+					logger.Error(nil, "Failed to read args", "type", deployment.deploymentType, "name", deployment.name)
 				}
 			}
 		}
