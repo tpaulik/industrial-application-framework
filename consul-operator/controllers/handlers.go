@@ -9,7 +9,9 @@ import (
 	"encoding/json"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"k8s.io/client-go/dynamic"
 	"reflect"
+	"regexp"
 	"time"
 
 	netattv1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
@@ -231,12 +233,23 @@ func getPrivateNetworkIpAddresses(namespace, pnaName string, deploymentList []de
 		logger.Error(err, "Failed to get the PrivateNetworkAccess CR")
 		return nil
 	}
-	pnaNetworkName, found, _ := unstructured.NestedString(pnaObj.Object, "status", "appNetworkName")
-	if !found {
-		logger.Error(err, "Failed to get the interface name in the PrivateNetworkAccess CR")
-		return nil
+	assignedNetwork, found, _ := unstructured.NestedStringMap(pnaObj.Object, "status", "assignedNetwork")
+	if found && assignedNetwork != nil {
+		logger.V(1).Info("Assigned network found in status, using dummy interface")
+		return getAddressOfDummyInterface(namespace, deploymentList, k8sClient)
+	} else {
+		pnaNetworkName, found, _ := unstructured.NestedString(pnaObj.Object, "status", "appNetworkName")
+		if !found {
+			logger.Error(err, "Failed to get the interface name in the PrivateNetworkAccess CR")
+			return nil
+		}
+		return getAddressesOfPnaDefinedInterfaces(namespace, deploymentList, k8sClient, pnaNetworkName)
 	}
+}
 
+func getAddressesOfPnaDefinedInterfaces(namespace string, deploymentList []deploymentId, k8sClient dynamic.Interface, pnaNetworkName string) map[string]string {
+	logger := log.WithName("getAddressesOfPnaDefinedInterfaces")
+	logger.V(1).Info("Read address of interface defined in PNA")
 	retIpAddresses := make(map[string]string)
 	for _, deployment := range deploymentList {
 		deploymentGvr := schema.GroupVersionResource{Version: "v1", Group: "apps", Resource: string(deployment.deploymentType)}
@@ -264,4 +277,44 @@ func getPrivateNetworkIpAddresses(namespace, pnaName string, deploymentList []de
 	}
 
 	return retIpAddresses
+}
+
+func getAddressOfDummyInterface(namespace string, deploymentList []deploymentId, k8sClient dynamic.Interface) map[string]string {
+	logger := log.WithName("getAddressOfDummyInterface")
+	for _, deployment := range deploymentList {
+		deploymentGvr := schema.GroupVersionResource{Version: "v1", Group: "apps", Resource: string(deployment.deploymentType)}
+		deploymentObj, err := k8sClient.Resource(deploymentGvr).Namespace(namespace).Get(context.TODO(), deployment.name, metav1.GetOptions{})
+		if err != nil {
+			logger.Error(err, "Failed to get the following deployment", "type", deployment.deploymentType, "name", deployment.name)
+			break
+		}
+		initContainers, found, err := unstructured.NestedSlice(deploymentObj.Object, "spec", "template", "spec", "initContainers")
+		if !found || err != nil {
+			logger.Error(err, "Failed to read initContainers", "type", deployment.deploymentType, "name", deployment.name)
+			break
+		}
+		for _, initContainer := range initContainers {
+			logger.Info("name:" + initContainer.(map[string]interface{})["name"].(string))
+			if initContainer.(map[string]interface{})["name"] == "appfw-private-network-routing" {
+				if args := initContainer.(map[string]interface{})["args"]; args != "" {
+					rg, err := regexp.Compile(`ip\s*link\s*add\s*name\s*.*?\s*type\s*dummy\s*&&\s*ip\s*addr\s*add\s*(?P<customerIP>.*?)/32`)
+					if err != nil {
+						logger.Error(err, "failed to compile the regular expression")
+						return nil
+					}
+					result := rg.FindStringSubmatch(args.([]interface{})[0].(string))
+					if result != nil {
+						logger.Info("Found IP to use from dummy interface " + result[1])
+						retIpAddresses := make(map[string]string)
+						retIpAddresses[string(deployment.deploymentType)+"/"+deployment.name] = result[1]
+						return retIpAddresses
+					}
+				} else {
+					logger.Error(nil, "Failed to read init container args", "type", deployment.deploymentType, "name", deployment.name)
+				}
+			}
+		}
+		return nil
+	}
+	return nil
 }
