@@ -8,48 +8,51 @@ package env
 
 import (
 	"context"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	"github.com/nokia/industrial-application-framework/componenttest-lib/pkg/cttestingfw/envtest"
-	"github.com/nokia/industrial-application-framework/componenttest-lib/pkg/cttestingfw/integration"
-	"github.com/nokia/industrial-application-framework/componenttest-lib/pkg/k8sclient"
-	"github.com/nokia/industrial-application-framework/componenttest-lib/pkg/nsdeleter"
-	"go.etcd.io/etcd/clientv3"
+	"github.com/prometheus/common/log"
+	clientv3 "go.etcd.io/etcd/client/v3"
 	v1 "k8s.io/api/core/v1"
 	k8sapierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/informers"
 	"k8s.io/client-go/metadata"
-	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
-	"net/url"
 	"os"
 	"path/filepath"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"k8s.io/client-go/rest"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/envtest"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
-	zaplogf "sigs.k8s.io/controller-runtime/pkg/log/zap"
+	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+
+	"github.com/nokia/industrial-application-framework/componenttest-lib/pkg/k8sclient"
+	"github.com/nokia/industrial-application-framework/componenttest-lib/pkg/nsdeleter"
+	//+kubebuilder:scaffold:imports
 )
+
+// These tests use Ginkgo (BDD-style Go testing framework). Refer to
+// http://onsi.github.io/ginkgo/ to learn more about Ginkgo.
 
 const (
-	KubeApiServerEnvVariable = "TEST_ASSET_KUBE_APISERVER"
-	EtcdEnvVariable          = "TEST_ASSET_ETCD"
-	KubeApiServerBinaryName  = "kube-apiserver"
-	EtcdBinaryName           = "etcd"
-	defaultKubebuilderPath   = "/usr/local/kubebuilder/bin"
+	KubeApiServerEnvVariable           = "TEST_ASSET_KUBE_APISERVER"
+	EtcdEnvVariable                    = "TEST_ASSET_ETCD"
+	KubebuilderControlPlaneStopTimeout = "KUBEBUILDER_CONTROLPLANE_STOP_TIMEOUT"
+	KubeApiServerBinaryName            = "kube-apiserver"
+	EtcdBinaryName                     = "etcd"
+	defaultKubebuilderPath             = "/usr/local/kubebuilder/bin"
 )
 
-var testenv *envtest.Environment
 var Cfg *rest.Config
+var k8sClient client.Client
+var testenv *envtest.Environment
 var CrdPathsToAdd []string
 var namespaceControllerStopper chan struct{}
-
-var log = logf.Log.WithName("suite_env")
 
 func TearUpTestEnv(testBinariesPath string, crdPaths ...string) {
 	var err error
 
-	logf.SetLogger(zaplogf.New(func(o *zaplogf.Options) {
-		o.Development = true
-		o.DestWritter = GinkgoWriter
-	}))
+	logf.SetLogger(zap.New(zap.WriteTo(GinkgoWriter), zap.UseDevMode(true)))
 
 	_, err = os.Stat(defaultKubebuilderPath + "/" + KubeApiServerBinaryName)
 	if os.IsNotExist(err) {
@@ -61,29 +64,24 @@ func TearUpTestEnv(testBinariesPath string, crdPaths ...string) {
 		_ = os.Setenv(EtcdEnvVariable, testBinariesPath+"/"+EtcdBinaryName)
 	}
 
-	flags := envtest.DefaultKubeAPIServerFlags
-	flags = append(flags, "--service-cluster-ip-range=10.0.0.0/16")
+	if v := os.Getenv(KubebuilderControlPlaneStopTimeout); v == "" {
+		os.Setenv(KubebuilderControlPlaneStopTimeout, "120s")
+	}
+
+	By("bootstrapping test environment")
 	defaultCRDPaths := []string{
-		filepath.Join("..", "deploy", "crds"),
+		filepath.Join("..", "config", "crd", "bases"),
 		filepath.Join(".", "crds"),
 	}
 	CrdPathsToAdd = append(defaultCRDPaths, crdPaths...)
-	testenv = &envtest.Environment{KubeAPIServerFlags: flags,
+	testenv = &envtest.Environment{
 		CRDDirectoryPaths: CrdPathsToAdd,
-		ControlPlane: integration.ControlPlane{
-			APIServer: &integration.APIServer{
-				URL: &url.URL{
-					Scheme: "http",
-					Host:   "127.0.0.1:35896",
-				},
-			},
-		},
+		ErrorIfCRDPathMissing: false,
 	}
 
 	Cfg, err = testenv.Start()
-	println("apiserver host " + Cfg.Host)
 	if err != nil {
-		panic("Failed to start the test environment")
+		panic(err)
 	}
 
 	startNamespaceController()
@@ -165,8 +163,7 @@ func InstallCRDs() error {
 
 func TearDownTestEnv() {
 	close(namespaceControllerStopper)
+	By("tearing down the test environment")
 	err := testenv.Stop()
-	if err != nil {
-		panic("Failed to stop the test environment")
-	}
+	Expect(err).NotTo(HaveOccurred())
 }
