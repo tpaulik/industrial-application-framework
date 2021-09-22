@@ -104,12 +104,49 @@ func (r *ConsulReconciler) handleDelete(instance *app.Consul, namespace string) 
 func (r *ConsulReconciler) handleUpdate(instance *app.Consul, namespace string) (reconcile.Result, error) {
 	logger := log.WithName("handlers").WithName("handleUpdate").WithValues("namespace", namespace, "name", instance.ObjectMeta.Name)
 	logger.Info("Called")
+	if !reflect.DeepEqual(instance.Status.PrevSpec.PrivateNetworkAccess, instance.Spec.PrivateNetworkAccess) {
+		log.V(1).Info("Network settings updated, reloading app")
+		instance.Status.PrevSpec = &instance.Spec
+		k8sClient := k8sdynamic.New(kubelib.GetKubeAPI())
+		if err := k8sClient.DeleteResources(instance.Status.AppliedResources); err != nil {
+			logger.Error(err, "failed to delete the resources")
+			return reconcile.Result{}, err
+		}
+		//Execute CR based templating to resolve the variables in the resource-req dir
+		resReqTemplater, err := template.NewTemplater(instance.Spec, namespace, "resource-reqs")
+		if err != nil {
+			logger.Error(err, "Failed to initialize the res-req appDeploymentTemplater")
+			return reconcile.Result{}, nil
+		}
+		_, err = resReqTemplater.RunCrTemplater("---\n")
+		if err != nil {
+			logger.Error(err, "Failed to execute the res-req CR appDeploymentTemplater")
+			return reconcile.Result{}, nil
+		}
 
-	instance.Status.PrevSpec = &instance.Spec
+		//Request NDAC platform resources
+		appliedPlatformResourceDescriptors, err := platformres.ApplyPlatformResourceRequests(namespace)
+		if err != nil {
+			logger.Error(err, "failed to apply the platform resource requests")
+			return reconcile.Result{}, nil
+		}
+		//Blocks until all of the platform requests granted
+		err = platformres.WaitUntilResourcesGranted(appliedPlatformResourceDescriptors, time.Second*500)
+		if err != nil {
+			logger.Error(err, "failed to get all of the requested platform resources")
+			return reconcile.Result{}, nil
+		}
+	}
+
 	if err := r.Client.Status().Update(context.TODO(), instance); nil != err {
 		log.Error(err, "status previous spec update failed")
 	}
 
+	h := helm.NewHelm(namespace)
+	if err := h.Deploy(); err != nil {
+		logger.Error(err, "failed to update the helm chart")
+		return reconcile.Result{}, err
+	}
 	return reconcile.Result{}, nil
 }
 
@@ -227,8 +264,7 @@ func getPrivateNetworkIpAddresses(namespace, pnaName string, deploymentList []de
 	logger := log.WithName("getPrivateNetworkIpAddresses")
 	k8sClient := k8sdynamic.GetDynamicK8sClient()
 
-	pnaGvr := schema.GroupVersionResource{Version: "v1alpha1", Group: "ops.dac.nokia.com", Resource: "privatenetworkaccesses"}
-	pnaObj, err := k8sClient.Resource(pnaGvr).Namespace(namespace).Get(context.TODO(), pnaName, metav1.GetOptions{})
+	pnaObj, err := getPna(namespace, pnaName, k8sClient)
 	if err != nil {
 		logger.Error(err, "Failed to get the PrivateNetworkAccess CR")
 		return nil
@@ -245,6 +281,15 @@ func getPrivateNetworkIpAddresses(namespace, pnaName string, deploymentList []de
 		}
 		return getAddressesOfPnaDefinedInterfaces(namespace, deploymentList, k8sClient, pnaNetworkName)
 	}
+}
+
+func getPna(namespace string, pnaName string, k8sClient dynamic.Interface) (*unstructured.Unstructured, error) {
+	pnaGvr := schema.GroupVersionResource{Version: "v1alpha1", Group: "ops.dac.nokia.com", Resource: "privatenetworkaccesses"}
+	pnaObj, err := k8sClient.Resource(pnaGvr).Namespace(namespace).Get(context.TODO(), pnaName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	return pnaObj, err
 }
 
 func getAddressesOfPnaDefinedInterfaces(namespace string, deploymentList []deploymentId, k8sClient dynamic.Interface, pnaNetworkName string) map[string]string {

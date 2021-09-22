@@ -19,9 +19,10 @@ const (
 )
 
 type PrivateNetworkAccess struct {
-	ApnUUID          string   `json:"apnUUID"`
-	CustomerNetwork  string   `json:"customerNetwork"`
-	AdditionalRoutes []string `json:"additionalRoutes,omitempty"`
+	ApnUUID          string    `json:"apnUUID,omitempty"`
+	Networks         []Network `json:"networks,omitempty"`
+	CustomerNetwork  string     `json:"customerNetwork"`
+	AdditionalRoutes []string  `json:"additionalRoutes,omitempty"`
 }
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
@@ -30,7 +31,7 @@ type PrivateNetworkAccess struct {
 // ConsulSpec defines the desired state of Consul
 type ConsulSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
+	// Important: Run "make generate" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 	ReplicaCount         int                   `json:"replicaCount"`
 	Ports                Ports                 `json:"ports"`
@@ -48,7 +49,7 @@ type AppReporteData struct {
 // ConsulStatus defines the observed state of Consul
 type ConsulStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
+	// Important: Run "make generate" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 	PrevSpec         *ConsulSpec                     `json:"prevSpec,omitempty"`
 	AppStatus        AppStatus                       `json:"appStatus,omitempty"`
@@ -89,6 +90,12 @@ type ConsulList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []Consul `json:"items"`
+}
+
+type Network struct {
+	ApnUUID				string		`json:"apnUUID,omitempty"`
+	NetworkID			string		`json:"networkId,omitempty"`
+	AdditionalRoutes	[]string 	`json:"additionalRoutes,omitempty"`
 }
 
 func init() {
