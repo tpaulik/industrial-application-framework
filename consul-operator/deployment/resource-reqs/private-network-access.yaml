@@ -13,7 +13,7 @@ spec:
   networks:
     - apnUUID: [[ .PrivateNetworkAccess.ApnUUID ]]
       additionalRoutes:
-        [[ range PrivateNetworkAccess.AdditionalRoutes ]]
+        [[ range .PrivateNetworkAccess.AdditionalRoutes ]]
         - [[ . ]]
         [[ end ]]
   [[ else if .PrivateNetworkAccess.Networks ]]
