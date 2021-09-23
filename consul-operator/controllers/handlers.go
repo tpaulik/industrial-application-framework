@@ -109,20 +109,28 @@ func (r *ConsulReconciler) handleUpdate(instance *app.Consul, namespace string) 
 		instance.Status.PrevSpec = &instance.Spec
 
 		//pna:=k8sdynamic.GetDynamicK8sClient().Resource(gvr.GetGvr()).Namespace(namespace)
-		pna := []k8sdynamic.ResourceDescriptor{{
+		pna := k8sdynamic.ResourceDescriptor{
 			Name:      "private-network-for-consul",
 			Namespace: namespace,
 			Gvr: k8sdynamic.GroupVersionResource{
 				Group:    "ops.dac.nokia.com",
 				Version:  "v1alpha1",
 				Resource: "privatenetworkaccesses",
-			}}}
+			}}
 		k8sClient := k8sdynamic.New(kubelib.GetKubeAPI())
-		if err := k8sClient.DeleteResources(pna); err != nil {
+		if err := k8sClient.DeleteResources([]k8sdynamic.ResourceDescriptor{pna}); err != nil {
 			logger.Error(err, "failed to delete the private network access")
 			return reconcile.Result{}, err
 		}
-
+		for {
+			oldPna, err := k8sdynamic.GetDynamicK8sClient().Resource(pna.Gvr.GetGvr()).Namespace(pna.Namespace).Get(context.TODO(), pna.Name, metav1.GetOptions{})
+			if oldPna == nil && err == nil{
+				logger.V(1).Info("PNA successfully removed")
+				break
+			}
+			logger.V(1).Info("Waiting for PNA deletion")
+			time.Sleep(time.Millisecond*100)
+		}
 		//Execute CR based templating to resolve the variables in the resource-req dir
 		resReqTemplater, err := template.NewTemplater(instance.Spec, namespace, "resource-reqs")
 		if err != nil {
@@ -152,7 +160,7 @@ func (r *ConsulReconciler) handleUpdate(instance *app.Consul, namespace string) 
 	if err := r.Client.Status().Update(context.TODO(), instance); nil != err {
 		log.Error(err, "status previous spec update failed")
 	}
-
+	// Upgrade application for the new networking settings to take effect
 	h := helm.NewHelm(namespace)
 	if err := h.Deploy(); err != nil {
 		logger.Error(err, "failed to update the helm chart")
