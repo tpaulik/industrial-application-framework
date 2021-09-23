@@ -124,7 +124,10 @@ func (r *ConsulReconciler) handleUpdate(instance *app.Consul, namespace string) 
 		}
 		for {
 			oldPna, err := k8sdynamic.GetDynamicK8sClient().Resource(pna.Gvr.GetGvr()).Namespace(pna.Namespace).Get(context.TODO(), pna.Name, metav1.GetOptions{})
-			if oldPna == nil && err == nil{
+			if err!= nil {
+				logger.V(1).Info("error getting oldpna", err)
+			}
+			if oldPna == nil {
 				logger.V(1).Info("PNA successfully removed")
 				break
 			}
