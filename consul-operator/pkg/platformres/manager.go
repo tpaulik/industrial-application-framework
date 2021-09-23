@@ -66,6 +66,32 @@ func ApplyPlatformResourceRequests(namespace string) ([]k8sdynamic.ResourceDescr
 
 	return descList, nil
 }
+func ApplyPnaResourceRequests(namespace string) ([]k8sdynamic.ResourceDescriptor, error) {
+	logger := log.WithName("ApplyPnaResourceRequests")
+	logger.Info("Called")
+
+	dynClient := k8sdynamic.New(kubelib2.GetKubeAPI())
+	dir := os.Getenv(ResourceRequestPath)
+	if dir == "" {
+		return nil, errors.New(ResourceRequestPath + " is not set")
+	}
+
+	var descList []k8sdynamic.ResourceDescriptor
+	fileContent, err := ioutil.ReadFile(dir + "/private-network-access.yaml")
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to read file")
+	}
+	//
+	//if strings.TrimSpace(string(fileContent)) == "" {
+	//	logger.Info("File is empty skip it", "path", dir+"/"+file.Name())
+	//}
+	resourceDesc, err := dynClient.ApplyYamlResource(string(fileContent), namespace)
+	descList = append(descList, resourceDesc)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to apply the request in k8s")
+	}
+	return descList, nil
+}
 
 func WaitUntilResourcesGranted(resourceList []k8sdynamic.ResourceDescriptor, timeout time.Duration) error {
 	logger := log.WithName("WaitUntilResourcesGranted")

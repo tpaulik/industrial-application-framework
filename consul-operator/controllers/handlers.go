@@ -107,11 +107,22 @@ func (r *ConsulReconciler) handleUpdate(instance *app.Consul, namespace string) 
 	if !reflect.DeepEqual(instance.Status.PrevSpec.PrivateNetworkAccess, instance.Spec.PrivateNetworkAccess) {
 		log.V(1).Info("Network settings updated, reloading app")
 		instance.Status.PrevSpec = &instance.Spec
+
+		//pna:=k8sdynamic.GetDynamicK8sClient().Resource(gvr.GetGvr()).Namespace(namespace)
+		pna := []k8sdynamic.ResourceDescriptor{{
+			Name:      "private-network-for-consul",
+			Namespace: namespace,
+			Gvr: k8sdynamic.GroupVersionResource{
+				Group:    "ops.dac.nokia.com",
+				Version:  "v1alpha1",
+				Resource: "privatenetworkaccesses",
+			}}}
 		k8sClient := k8sdynamic.New(kubelib.GetKubeAPI())
-		if err := k8sClient.DeleteResources(instance.Status.AppliedResources); err != nil {
-			logger.Error(err, "failed to delete the resources")
+		if err := k8sClient.DeleteResources(pna); err != nil {
+			logger.Error(err, "failed to delete the private network access")
 			return reconcile.Result{}, err
 		}
+
 		//Execute CR based templating to resolve the variables in the resource-req dir
 		resReqTemplater, err := template.NewTemplater(instance.Spec, namespace, "resource-reqs")
 		if err != nil {
@@ -125,15 +136,15 @@ func (r *ConsulReconciler) handleUpdate(instance *app.Consul, namespace string) 
 		}
 
 		//Request NDAC platform resources
-		appliedPlatformResourceDescriptors, err := platformres.ApplyPlatformResourceRequests(namespace)
+		appliedPlatformResourceDescriptors, err := platformres.ApplyPnaResourceRequests(namespace)
 		if err != nil {
-			logger.Error(err, "failed to apply the platform resource requests")
+			logger.Error(err, "failed to apply updated pna request")
 			return reconcile.Result{}, nil
 		}
 		//Blocks until all of the platform requests granted
 		err = platformres.WaitUntilResourcesGranted(appliedPlatformResourceDescriptors, time.Second*500)
 		if err != nil {
-			logger.Error(err, "failed to get all of the requested platform resources")
+			logger.Error(err, "failed to get pna resources")
 			return reconcile.Result{}, nil
 		}
 	}
