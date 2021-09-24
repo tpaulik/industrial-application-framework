@@ -104,8 +104,12 @@ func (r *ConsulReconciler) handleDelete(instance *app.Consul, namespace string) 
 func (r *ConsulReconciler) handleUpdate(instance *app.Consul, namespace string) (reconcile.Result, error) {
 	logger := log.WithName("handlers").WithName("handleUpdate").WithValues("namespace", namespace, "name", instance.ObjectMeta.Name)
 	logger.Info("Called")
+	h := helm.NewHelm(namespace)
 	if !reflect.DeepEqual(instance.Status.PrevSpec.PrivateNetworkAccess, instance.Spec.PrivateNetworkAccess) {
 		log.V(1).Info("Network settings updated, reloading app")
+		if err := h.Undeploy(); err != nil {
+			logger.Error(err, "failed to uninstall the helm chart")
+		}
 		instance.Status.PrevSpec = &instance.Spec
 
 		//pna:=k8sdynamic.GetDynamicK8sClient().Resource(gvr.GetGvr()).Namespace(namespace)
@@ -164,7 +168,6 @@ func (r *ConsulReconciler) handleUpdate(instance *app.Consul, namespace string) 
 		log.Error(err, "status previous spec update failed")
 	}
 	// Upgrade application for the new networking settings to take effect
-	h := helm.NewHelm(namespace)
 	if err := h.Deploy(); err != nil {
 		logger.Error(err, "failed to update the helm chart")
 		return reconcile.Result{}, err
