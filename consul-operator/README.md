@@ -363,16 +363,13 @@ following commands.
 
 ## How to test your application operator without App FW in your local environment
 1. After your operator will be able to build. You will need a Kubernetes cluster and there
-   you need to deploy your operator by applying the yaml files from the deploy directory.
+   you can deploy your operator with the following command:
 
-   What you need are the:
-    -	deploy/role.yaml
-    -	deploy/rolebindig.yaml
-    -	deploy/service_account.yaml
-    -	deploy/crd/app.dac.nokia.com_consuls_crd.yaml
-    -	deploy/operator.yaml (this part need to be replaced “image: REPLACE_IMAGE”)
+   > make deploy IMG=docker-registry.vepro.nsn-rdnet.com/appfw/consul-operator:0.1
 
-2. The next step is to apply the CR from the deploy/crds/*_cr.yaml to the same namespace where your
+   The applied yaml files can be found under the config/ directory.
+
+2. The next step is to apply the CR from the config/samples/app.dac.nokia.com_v1alpha1_consul.yaml to the same namespace where your
    operator is running. For this phase you should delete the content of the deployment/resource-reqs directory because on your
    environment the NDAC platform resource providers are not available so your operator won’t be able to get the needed resources
    and it will interrupt the deployment.
@@ -401,7 +398,7 @@ following commands.
       - your-namespace
     ```
 
-4. You should apply your CRD and CSV file(deploy/olm-catalog/consul/0.0.1/consul.v0.0.1.clusterserviceversion.yaml) in the
+4. You should apply your CRD and CSV file(packagemanifests/0.0.1/consul.clusterserviceversion.yaml) in the
    newly created namespace. The CSV will be detected by the olm-operator and it will deploy the operator. If there is
    some problem, you can check the status part of the installPlan and CSV resources. It should contain the reason why OLM can’t do
    the deployment.
@@ -414,7 +411,7 @@ following commands.
    contains your new application.
 
    You can build it manually by cloning [this](https://github.com/operator-framework/operator-registry)
-   repo. After that you should replace the content of the manifest directory with the deploy/olm-catalog. And finally
+   repo. After that you should replace the content of the manifest directory with the packagemanifests/. And finally
    you should build and push the docker image with these commands:
 
    >docker build -t {replace this with your image name} -f upstream-example.Dockerfile .
