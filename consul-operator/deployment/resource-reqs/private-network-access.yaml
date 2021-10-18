@@ -12,10 +12,12 @@ spec:
   [[ if .PrivateNetworkAccess.ApnUUID ]]
   networks:
     - apnUUID: [[ .PrivateNetworkAccess.ApnUUID ]]
+      [[ if .PrivateNetworkAccess.AdditionalRoutes ]]
       additionalRoutes:
         [[ range .PrivateNetworkAccess.AdditionalRoutes ]]
         - [[ . ]]
         [[ end ]]
+      [[ end ]]
   [[ else if .PrivateNetworkAccess.Networks ]]
   networks:
   [[ range .PrivateNetworkAccess.Networks ]]
@@ -24,10 +26,12 @@ spec:
     [[ else if .NetworkID ]]
     - networkId: [[ .NetworkID ]]
     [[ end ]]
+    [[ if .AdditionalRoutes ]]
       additionalRoutes:
         [[ range .AdditionalRoutes ]]
         - [[ . ]]
         [[ end ]]
+    [[ end ]]
   [[ end ]]
   [[ end ]]
 [[ end ]]
