@@ -10,7 +10,7 @@ metadata:
   labels:
     control-plane: controller-manager
   name: controller-manager-metrics-monitor
-  namespace: app-consul
+  namespace: system
 spec:
   endpoints:
     - path: /metrics

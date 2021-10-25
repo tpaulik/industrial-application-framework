@@ -8,7 +8,7 @@ metadata:
   labels:
     control-plane: controller-manager
   name: controller-manager-metrics-service
-  namespace: app-consul
+  namespace: system
 spec:
   ports:
   - name: https

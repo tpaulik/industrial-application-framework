@@ -7,13 +7,13 @@ kind: Namespace
 metadata:
   labels:
     control-plane: controller-manager
-  name: app-consul
+  name: system
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: consul-operator
-  namespace: app-consul
+  name: controller-manager
+  namespace: system
   labels:
     control-plane: controller-manager
 spec:
