@@ -33,8 +33,12 @@ type ConsulReconciler struct {
 //+kubebuilder:rbac:groups=app.dac.nokia.com,resources=consuls/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=app.dac.nokia.com,resources=consuls/finalizers,verbs=update
 //+kubebuilder:rbac:groups=ops.dac.nokia.com,resources=*,verbs=create;delete;get;list;patch;update;watch
-//+kubebuilder:rbac:groups=extensions,resources=ingresses,verbs=*
-//+kubebuilder:rbac:groups="",resources=pods;services;endpoints;events;configmaps;secrets,verbs=create;delete;get;list;watch;patch;update
+//+kubebuilder:rbac:groups="extensions;networking.k8s.io",resources=ingresses,verbs=*
+//+kubebuilder:rbac:groups="",resources=pods;services;endpoints;events;configmaps;secrets;persistentvolumeclaims,verbs=create;delete;get;list;watch;patch;update
+//+kubebuilder:rbac:groups="apps",resources=deployments;daemonsets;replicasets;statefulsets,verbs=*
+//+kubebuilder:rbac:groups="apps",resourceNames=consul-operator,resources=deployments/finalizers,verbs=update
+//+kubebuilder:rbac:groups="monitoring.coreos.com",resources=servicemonitors,verbs=get;create
+//+kubebuilder:rbac:groups="coordination.k8s.io",resources=leases,verbs=get;list;watch;create;update;patch;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
