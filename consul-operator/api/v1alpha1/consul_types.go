@@ -21,7 +21,7 @@ const (
 type PrivateNetworkAccess struct {
 	ApnUUID          string    `json:"apnUUID,omitempty"`
 	Networks         []Network `json:"networks,omitempty"`
-	CustomerNetwork  string     `json:"customerNetwork"`
+	CustomerNetwork  string    `json:"customerNetwork"`
 	AdditionalRoutes []string  `json:"additionalRoutes,omitempty"`
 }
 
@@ -93,9 +93,9 @@ type ConsulList struct {
 }
 
 type Network struct {
-	ApnUUID				string		`json:"apnUUID,omitempty"`
-	NetworkID			string		`json:"networkId,omitempty"`
-	AdditionalRoutes	[]string 	`json:"additionalRoutes,omitempty"`
+	ApnUUID          string   `json:"apnUUID,omitempty"`
+	NetworkID        string   `json:"networkId,omitempty"`
+	AdditionalRoutes []string `json:"additionalRoutes,omitempty"`
 }
 
 func init() {

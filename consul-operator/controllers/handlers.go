@@ -128,7 +128,7 @@ func (r *ConsulReconciler) handleUpdate(instance *app.Consul, namespace string) 
 		}
 		for {
 			oldPna, err := k8sdynamic.GetDynamicK8sClient().Resource(pna.Gvr.GetGvr()).Namespace(pna.Namespace).Get(context.TODO(), pna.Name, metav1.GetOptions{})
-			if err!= nil {
+			if err != nil {
 				logger.V(1).Error(err, "error getting oldpna")
 			}
 			if oldPna == nil {
@@ -136,7 +136,7 @@ func (r *ConsulReconciler) handleUpdate(instance *app.Consul, namespace string) 
 				break
 			}
 			logger.V(1).Info("Waiting for PNA deletion")
-			time.Sleep(time.Millisecond*100)
+			time.Sleep(time.Millisecond * 100)
 		}
 		//Execute CR based templating to resolve the variables in the resource-req dir
 		resReqTemplater, err := template.NewTemplater(instance.Spec, namespace, "resource-reqs")

@@ -71,15 +71,29 @@ spec:
                     type: string
                   customerNetwork:
                     type: string
+                  networks:
+                    items:
+                      properties:
+                        additionalRoutes:
+                          items:
+                            type: string
+                          type: array
+                        apnUUID:
+                          type: string
+                        networkId:
+                          type: string
+                        oneOf:
+                          - required: [ "apnUUID" ]
+                          - required: [ "networkId" ]                
+                      type: object
+                    type: array
                 required:
-                - apnUUID
                 - customerNetwork
                 type: object
               replicaCount:
                 description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-                  Important: Run "operator-sdk generate k8s" to regenerate code after
-                  modifying this file Add custom validation using kubebuilder tags:
-                  https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
+                  Important: Run "make generate" to regenerate code after modifying
+                  this file Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
                 type: integer
             required:
             - ports
@@ -123,9 +137,9 @@ spec:
                 type: array
               prevSpec:
                 description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
-                  of cluster Important: Run "operator-sdk generate k8s" to regenerate
-                  code after modifying this file Add custom validation using kubebuilder
-                  tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
+                  of cluster Important: Run "make generate" to regenerate code after
+                  modifying this file Add custom validation using kubebuilder tags:
+                  https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
                 properties:
                   metricsDomainName:
                     type: string
@@ -160,14 +174,26 @@ spec:
                         type: string
                       customerNetwork:
                         type: string
+                      networks:
+                        items:
+                          properties:
+                            additionalRoutes:
+                              items:
+                                type: string
+                              type: array
+                            apnUUID:
+                              type: string
+                            networkId:
+                              type: string
+                          type: object
+                        type: array
                     required:
-                    - apnUUID
                     - customerNetwork
                     type: object
                   replicaCount:
                     description: 'INSERT ADDITIONAL SPEC FIELDS - desired state of
-                      cluster Important: Run "operator-sdk generate k8s" to regenerate
-                      code after modifying this file Add custom validation using kubebuilder
+                      cluster Important: Run "make generate" to regenerate code after
+                      modifying this file Add custom validation using kubebuilder
                       tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html'
                     type: integer
                 required:
