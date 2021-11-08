@@ -81,10 +81,7 @@ func ApplyPnaResourceRequests(namespace string) ([]k8sdynamic.ResourceDescriptor
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read file")
 	}
-	//
-	//if strings.TrimSpace(string(fileContent)) == "" {
-	//	logger.Info("File is empty skip it", "path", dir+"/"+file.Name())
-	//}
+
 	resourceDesc, err := dynClient.ApplyYamlResource(string(fileContent), namespace)
 	descList = append(descList, resourceDesc)
 	if err != nil {

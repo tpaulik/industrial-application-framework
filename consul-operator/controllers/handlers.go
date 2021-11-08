@@ -110,9 +110,7 @@ func (r *ConsulReconciler) handleUpdate(instance *app.Consul, namespace string) 
 		if err := h.Undeploy(); err != nil {
 			logger.Error(err, "failed to uninstall the helm chart")
 		}
-		instance.Status.PrevSpec = &instance.Spec
 
-		//pna:=k8sdynamic.GetDynamicK8sClient().Resource(gvr.GetGvr()).Namespace(namespace)
 		pna := k8sdynamic.ResourceDescriptor{
 			Name:      "private-network-for-consul",
 			Namespace: namespace,
@@ -164,6 +162,7 @@ func (r *ConsulReconciler) handleUpdate(instance *app.Consul, namespace string) 
 		}
 	}
 
+	instance.Status.PrevSpec = &instance.Spec
 	if err := r.Client.Status().Update(context.TODO(), instance); nil != err {
 		log.Error(err, "status previous spec update failed")
 	}
