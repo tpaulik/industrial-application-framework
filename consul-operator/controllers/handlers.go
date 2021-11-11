@@ -7,11 +7,14 @@ package controllers
 import (
 	"context"
 	"encoding/json"
+	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/util/retry"
 	"reflect"
 	"regexp"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"time"
 
 	netattv1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
@@ -24,10 +27,15 @@ import (
 	"github.com/nokia/industrial-application-framework/consul-operator/pkg/platformres"
 	"github.com/nokia/industrial-application-framework/consul-operator/pkg/template"
 	"github.com/nokia/industrial-application-framework/consul-operator/pkg/util/finalizer"
-
+	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+)
+
+const (
+	usingPnaLabelKey = "ndac.appfw.private-network-access"
+	appPnaName       = "private-network-for-consul"
 )
 
 const (
@@ -104,15 +112,25 @@ func (r *ConsulReconciler) handleDelete(instance *app.Consul, namespace string) 
 func (r *ConsulReconciler) handleUpdate(instance *app.Consul, namespace string) (reconcile.Result, error) {
 	logger := log.WithName("handlers").WithName("handleUpdate").WithValues("namespace", namespace, "name", instance.ObjectMeta.Name)
 	logger.Info("Called")
-	h := helm.NewHelm(namespace)
 	if !reflect.DeepEqual(instance.Status.PrevSpec.PrivateNetworkAccess, instance.Spec.PrivateNetworkAccess) {
 		log.V(1).Info("Network settings updated, reloading app")
-		if err := h.Undeploy(); err != nil {
-			logger.Error(err, "failed to uninstall the helm chart")
+		//Remove statefulsets having pna label
+		consulApp := &appsv1.StatefulSet{}
+		opts := []client.DeleteAllOfOption{
+			client.InNamespace(namespace),
+			client.MatchingLabels{usingPnaLabelKey: appPnaName},
+			client.GracePeriodSeconds(0),
+			client.PropagationPolicy(metav1.DeletePropagationBackground),
 		}
+		err := r.DeleteAllOf(context.TODO(), consulApp, opts...)
+		if err != nil {
+			logger.Error(err, "Failed removal of app components using pna")
+			return reconcile.Result{}, nil
+		}
+		logger.V(1).Info("Consul app undeployed")
 
 		pna := k8sdynamic.ResourceDescriptor{
-			Name:      "private-network-for-consul",
+			Name:      appPnaName,
 			Namespace: namespace,
 			Gvr: k8sdynamic.GroupVersionResource{
 				Group:    "ops.dac.nokia.com",
@@ -125,13 +143,14 @@ func (r *ConsulReconciler) handleUpdate(instance *app.Consul, namespace string) 
 			return reconcile.Result{}, err
 		}
 		for {
-			oldPna, err := k8sdynamic.GetDynamicK8sClient().Resource(pna.Gvr.GetGvr()).Namespace(pna.Namespace).Get(context.TODO(), pna.Name, metav1.GetOptions{})
+			_, err := k8sdynamic.GetDynamicK8sClient().Resource(pna.Gvr.GetGvr()).Namespace(pna.Namespace).Get(context.TODO(), pna.Name, metav1.GetOptions{})
 			if err != nil {
+				if k8serrors.IsNotFound(err) {
+					logger.V(1).Info("PNA successfully removed")
+					break
+				} else {
 				logger.V(1).Error(err, "error getting oldpna")
-			}
-			if oldPna == nil {
-				logger.V(1).Info("PNA successfully removed")
-				break
+				}
 			}
 			logger.V(1).Info("Waiting for PNA deletion")
 			time.Sleep(time.Millisecond * 100)
@@ -162,17 +181,49 @@ func (r *ConsulReconciler) handleUpdate(instance *app.Consul, namespace string) 
 		}
 	}
 
-	instance.Status.PrevSpec = &instance.Spec
-	if err := r.Client.Status().Update(context.TODO(), instance); nil != err {
-		log.Error(err, "status previous spec update failed")
-	}
 	// Upgrade application for the new networking settings to take effect
+	h := helm.NewHelm(namespace)
 	if err := h.Deploy(); err != nil {
 		logger.Error(err, "failed to update the helm chart")
 		return reconcile.Result{}, err
 	}
+	instance.Status.PrevSpec = &instance.Spec
+	if err := r.updateStatus(instance); nil != err {
+		log.Error(err, "status previous spec update failed")
+	}
+
 	return reconcile.Result{}, nil
 }
+
+func (r *ConsulReconciler) updateStatus(instance *app.Consul) error {
+	prevSpec := instance.Status.PrevSpec.DeepCopy()
+	appliedResources := make([]k8sdynamic.ResourceDescriptor, len(instance.Status.AppliedResources))
+	copy(appliedResources, instance.Status.AppliedResources)
+	key := client.ObjectKey{
+		Namespace: instance.GetNamespace(),
+		Name:      instance.GetName(),
+	}
+
+	err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		err := r.Get(context.TODO(), key, instance)
+		if err != nil {
+			return err
+		}
+
+		instance.Status.PrevSpec = prevSpec
+		instance.Status.AppliedResources = appliedResources
+
+		err = r.Status().Update(context.TODO(), instance)
+		return err
+	})
+
+	if err != nil {
+		return errors.Wrap(err, "failed Consul status update")
+	}
+
+	return nil
+}
+
 
 func (r *ConsulReconciler) handleCreate(instance *app.Consul, namespace string) (reconcile.Result, error) {
 	logger := log.WithName("handlers").WithName("handleCreate").WithValues("namespace", namespace, "name", instance.ObjectMeta.Name)
@@ -254,7 +305,7 @@ func (r *ConsulReconciler) handleCreate(instance *app.Consul, namespace string) 
 			if instance.Spec.PrivateNetworkAccess != nil {
 				instance.Status.AppReportedData.PrivateNetworkIpAddress = getPrivateNetworkIpAddresses(
 					namespace,
-					"private-network-for-consul",
+					appPnaName,
 					[]deploymentId{
 						{deploymentTypeStatefulset, "example-consul"},
 					},

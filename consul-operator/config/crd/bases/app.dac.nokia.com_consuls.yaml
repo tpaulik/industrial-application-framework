@@ -83,6 +83,9 @@ spec:
                         - required: [ "networkId" ]
                       type: object
                     type: array
+                oneOf:
+                  - required: [ "apnUUID" ]
+                  - required: [ "networks" ]                       
                 required:
                 - customerNetwork
                 type: object
@@ -186,6 +189,9 @@ spec:
                             - required: [ "networkId" ]                              
                           type: object
                         type: array
+                    oneOf:
+                      - required: [ "apnUUID" ]
+                      - required: [ "networks" ]                       
                     required:
                     - customerNetwork
                     type: object
