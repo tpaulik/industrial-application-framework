@@ -28,8 +28,8 @@ import (
 	"github.com/nokia/industrial-application-framework/consul-operator/pkg/template"
 	"github.com/nokia/industrial-application-framework/consul-operator/pkg/util/finalizer"
 	appsv1 "k8s.io/api/apps/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
@@ -112,23 +112,17 @@ func (r *ConsulReconciler) handleDelete(instance *app.Consul, namespace string) 
 func (r *ConsulReconciler) handleUpdate(instance *app.Consul, namespace string) (reconcile.Result, error) {
 	logger := log.WithName("handlers").WithName("handleUpdate").WithValues("namespace", namespace, "name", instance.ObjectMeta.Name)
 	logger.Info("Called")
-	if !reflect.DeepEqual(instance.Status.PrevSpec.PrivateNetworkAccess, instance.Spec.PrivateNetworkAccess) {
+	if appParametersChanged(instance) {
 		log.V(1).Info("Network settings updated, reloading app")
-		//Remove statefulsets having pna label
-		consulApp := &appsv1.StatefulSet{}
-		opts := []client.DeleteAllOfOption{
-			client.InNamespace(namespace),
-			client.MatchingLabels{usingPnaLabelKey: appPnaName},
-			client.GracePeriodSeconds(0),
-			client.PropagationPolicy(metav1.DeletePropagationBackground),
-		}
-		err := r.DeleteAllOf(context.TODO(), consulApp, opts...)
+
+		err := r.undeployAppComponentsAffectedByUpdate(namespace)
 		if err != nil {
 			logger.Error(err, "Failed removal of app components using pna")
 			return reconcile.Result{}, nil
 		}
 		logger.V(1).Info("Consul app undeployed")
 
+		//Removing the resources that are affected by the update
 		pna := k8sdynamic.ResourceDescriptor{
 			Name:      appPnaName,
 			Namespace: namespace,
@@ -137,24 +131,17 @@ func (r *ConsulReconciler) handleUpdate(instance *app.Consul, namespace string) 
 				Version:  "v1alpha1",
 				Resource: "privatenetworkaccesses",
 			}}
-		k8sClient := k8sdynamic.New(kubelib.GetKubeAPI())
-		if err := k8sClient.DeleteResources([]k8sdynamic.ResourceDescriptor{pna}); err != nil {
-			logger.Error(err, "failed to delete the private network access")
+
+		err = deleteChangedResources(pna)
+		if err != nil {
+			logger.Error(err, "failed to delete private network access")
 			return reconcile.Result{}, err
 		}
-		for {
-			_, err := k8sdynamic.GetDynamicK8sClient().Resource(pna.Gvr.GetGvr()).Namespace(pna.Namespace).Get(context.TODO(), pna.Name, metav1.GetOptions{})
-			if err != nil {
-				if k8serrors.IsNotFound(err) {
-					logger.V(1).Info("PNA successfully removed")
-					break
-				} else {
-				logger.V(1).Error(err, "error getting oldpna")
-				}
-			}
-			logger.V(1).Info("Waiting for PNA deletion")
-			time.Sleep(time.Millisecond * 100)
-		}
+
+		//PrivateNetworkAccess release takes some time, we need to wait for its removal before recreating it
+		waitUntilResourcesAreReleased(pna)
+
+		//Recreate resources and redeploy application
 		//Execute CR based templating to resolve the variables in the resource-req dir
 		resReqTemplater, err := template.NewTemplater(instance.Spec, namespace, "resource-reqs")
 		if err != nil {
@@ -193,6 +180,49 @@ func (r *ConsulReconciler) handleUpdate(instance *app.Consul, namespace string) 
 	}
 
 	return reconcile.Result{}, nil
+}
+
+func deleteChangedResources(pna k8sdynamic.ResourceDescriptor) error {
+	k8sClient := k8sdynamic.New(kubelib.GetKubeAPI())
+	if err := k8sClient.DeleteResources([]k8sdynamic.ResourceDescriptor{pna}); err != nil {
+		return err
+	}
+	return nil
+}
+
+func waitUntilResourcesAreReleased(pna k8sdynamic.ResourceDescriptor) {
+	logger := log.WithName("handlers").WithName("waitUntilResourcesAreReleased")
+	for {
+		_, err := k8sdynamic.GetDynamicK8sClient().Resource(pna.Gvr.GetGvr()).Namespace(pna.Namespace).Get(context.TODO(), pna.Name, metav1.GetOptions{})
+		if err != nil {
+			if k8serrors.IsNotFound(err) {
+				logger.V(1).Info("PNA successfully removed")
+				break
+			} else {
+				logger.V(1).Error(err, "error getting oldpna")
+			}
+		}
+		logger.V(1).Info("Waiting for PNA deletion")
+		time.Sleep(time.Millisecond * 100)
+	}
+}
+
+func (r *ConsulReconciler) undeployAppComponentsAffectedByUpdate(namespace string) error {
+	//Remove statefulsets having pna label
+	consulApp := &appsv1.StatefulSet{}
+	opts := []client.DeleteAllOfOption{
+		client.InNamespace(namespace),
+		client.MatchingLabels{usingPnaLabelKey: appPnaName},
+		client.GracePeriodSeconds(0),
+		client.PropagationPolicy(metav1.DeletePropagationBackground),
+	}
+	err := r.DeleteAllOf(context.TODO(), consulApp, opts...)
+	return err
+}
+
+func appParametersChanged(instance *app.Consul) bool {
+	// Comparing existing application parameters with new values in case of parameters whose value change is supported
+	return !reflect.DeepEqual(instance.Status.PrevSpec.PrivateNetworkAccess, instance.Spec.PrivateNetworkAccess)
 }
 
 func (r *ConsulReconciler) updateStatus(instance *app.Consul) error {
