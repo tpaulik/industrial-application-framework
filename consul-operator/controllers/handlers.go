@@ -7,11 +7,14 @@ package controllers
 import (
 	"context"
 	"encoding/json"
+	"github.com/pkg/errors"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/client-go/dynamic"
+	"k8s.io/client-go/util/retry"
 	"reflect"
 	"regexp"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"time"
 
 	netattv1 "github.com/k8snetworkplumbingwg/network-attachment-definition-client/pkg/apis/k8s.cni.cncf.io/v1"
@@ -24,10 +27,15 @@ import (
 	"github.com/nokia/industrial-application-framework/consul-operator/pkg/platformres"
 	"github.com/nokia/industrial-application-framework/consul-operator/pkg/template"
 	"github.com/nokia/industrial-application-framework/consul-operator/pkg/util/finalizer"
-
+	appsv1 "k8s.io/api/apps/v1"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+)
+
+const (
+	usingPnaLabelKey = "ndac.appfw.private-network-access"
+	appPnaName       = "private-network-for-consul"
 )
 
 const (
@@ -104,14 +112,148 @@ func (r *ConsulReconciler) handleDelete(instance *app.Consul, namespace string) 
 func (r *ConsulReconciler) handleUpdate(instance *app.Consul, namespace string) (reconcile.Result, error) {
 	logger := log.WithName("handlers").WithName("handleUpdate").WithValues("namespace", namespace, "name", instance.ObjectMeta.Name)
 	logger.Info("Called")
+	if appParametersChanged(instance) {
+		log.V(1).Info("Network settings updated, reloading app")
 
+		err := r.undeployAppComponentsAffectedByUpdate(namespace)
+		if err != nil {
+			logger.Error(err, "Failed removal of app components using pna")
+			return reconcile.Result{}, nil
+		}
+		logger.V(1).Info("Consul app undeployed")
+
+		//Removing the resources that are affected by the update
+		pna := k8sdynamic.ResourceDescriptor{
+			Name:      appPnaName,
+			Namespace: namespace,
+			Gvr: k8sdynamic.GroupVersionResource{
+				Group:    "ops.dac.nokia.com",
+				Version:  "v1alpha1",
+				Resource: "privatenetworkaccesses",
+			}}
+
+		err = deleteChangedResources(pna)
+		if err != nil {
+			logger.Error(err, "failed to delete private network access")
+			return reconcile.Result{}, err
+		}
+
+		//PrivateNetworkAccess release takes some time, we need to wait for its removal before recreating it
+		waitUntilResourcesAreReleased(pna)
+
+		//Recreate resources and redeploy application
+		//Execute CR based templating to resolve the variables in the resource-req dir
+		resReqTemplater, err := template.NewTemplater(instance.Spec, namespace, "resource-reqs")
+		if err != nil {
+			logger.Error(err, "Failed to initialize the res-req appDeploymentTemplater")
+			return reconcile.Result{}, nil
+		}
+		_, err = resReqTemplater.RunCrTemplater("---\n")
+		if err != nil {
+			logger.Error(err, "Failed to execute the res-req CR appDeploymentTemplater")
+			return reconcile.Result{}, nil
+		}
+
+		//Request NDAC platform resources
+		appliedPlatformResourceDescriptors, err := platformres.ApplyPnaResourceRequests(namespace)
+		if err != nil {
+			logger.Error(err, "failed to apply updated pna request")
+			return reconcile.Result{}, nil
+		}
+		//Blocks until all of the platform requests granted
+		err = platformres.WaitUntilResourcesGranted(appliedPlatformResourceDescriptors, time.Second*500)
+		if err != nil {
+			logger.Error(err, "failed to get pna resources")
+			return reconcile.Result{}, nil
+		}
+	}
+
+	// Upgrade application for the new networking settings to take effect
+	h := helm.NewHelm(namespace)
+	if err := h.Deploy(); err != nil {
+		logger.Error(err, "failed to update the helm chart")
+		return reconcile.Result{}, err
+	}
 	instance.Status.PrevSpec = &instance.Spec
-	if err := r.Client.Status().Update(context.TODO(), instance); nil != err {
+	if err := r.updateStatus(instance); nil != err {
 		log.Error(err, "status previous spec update failed")
 	}
 
 	return reconcile.Result{}, nil
 }
+
+func deleteChangedResources(pna k8sdynamic.ResourceDescriptor) error {
+	k8sClient := k8sdynamic.New(kubelib.GetKubeAPI())
+	if err := k8sClient.DeleteResources([]k8sdynamic.ResourceDescriptor{pna}); err != nil {
+		return err
+	}
+	return nil
+}
+
+func waitUntilResourcesAreReleased(pna k8sdynamic.ResourceDescriptor) {
+	logger := log.WithName("handlers").WithName("waitUntilResourcesAreReleased")
+	for {
+		_, err := k8sdynamic.GetDynamicK8sClient().Resource(pna.Gvr.GetGvr()).Namespace(pna.Namespace).Get(context.TODO(), pna.Name, metav1.GetOptions{})
+		if err != nil {
+			if k8serrors.IsNotFound(err) {
+				logger.V(1).Info("PNA successfully removed")
+				break
+			} else {
+				logger.V(1).Error(err, "error getting oldpna")
+			}
+		}
+		logger.V(1).Info("Waiting for PNA deletion")
+		time.Sleep(time.Millisecond * 100)
+	}
+}
+
+func (r *ConsulReconciler) undeployAppComponentsAffectedByUpdate(namespace string) error {
+	//Remove statefulsets having pna label
+	consulApp := &appsv1.StatefulSet{}
+	opts := []client.DeleteAllOfOption{
+		client.InNamespace(namespace),
+		client.MatchingLabels{usingPnaLabelKey: appPnaName},
+		client.GracePeriodSeconds(0),
+		client.PropagationPolicy(metav1.DeletePropagationBackground),
+	}
+	err := r.DeleteAllOf(context.TODO(), consulApp, opts...)
+	return err
+}
+
+func appParametersChanged(instance *app.Consul) bool {
+	// Comparing existing application parameters with new values in case of parameters whose value change is supported
+	return !reflect.DeepEqual(instance.Status.PrevSpec.PrivateNetworkAccess, instance.Spec.PrivateNetworkAccess)
+}
+
+func (r *ConsulReconciler) updateStatus(instance *app.Consul) error {
+	prevSpec := instance.Status.PrevSpec.DeepCopy()
+	appliedResources := make([]k8sdynamic.ResourceDescriptor, len(instance.Status.AppliedResources))
+	copy(appliedResources, instance.Status.AppliedResources)
+	key := client.ObjectKey{
+		Namespace: instance.GetNamespace(),
+		Name:      instance.GetName(),
+	}
+
+	err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		err := r.Get(context.TODO(), key, instance)
+		if err != nil {
+			return err
+		}
+
+		instance.Status.PrevSpec = prevSpec
+		instance.Status.AppliedResources = appliedResources
+
+		err = r.Status().Update(context.TODO(), instance)
+		return err
+	})
+
+	if err != nil {
+		return errors.Wrap(err, "failed Consul status update")
+	}
+
+	return nil
+}
+
 
 func (r *ConsulReconciler) handleCreate(instance *app.Consul, namespace string) (reconcile.Result, error) {
 	logger := log.WithName("handlers").WithName("handleCreate").WithValues("namespace", namespace, "name", instance.ObjectMeta.Name)
@@ -193,7 +335,7 @@ func (r *ConsulReconciler) handleCreate(instance *app.Consul, namespace string) 
 			if instance.Spec.PrivateNetworkAccess != nil {
 				instance.Status.AppReportedData.PrivateNetworkIpAddress = getPrivateNetworkIpAddresses(
 					namespace,
-					"private-network-for-consul",
+					appPnaName,
 					[]deploymentId{
 						{deploymentTypeStatefulset, "example-consul"},
 					},
@@ -227,8 +369,7 @@ func getPrivateNetworkIpAddresses(namespace, pnaName string, deploymentList []de
 	logger := log.WithName("getPrivateNetworkIpAddresses")
 	k8sClient := k8sdynamic.GetDynamicK8sClient()
 
-	pnaGvr := schema.GroupVersionResource{Version: "v1alpha1", Group: "ops.dac.nokia.com", Resource: "privatenetworkaccesses"}
-	pnaObj, err := k8sClient.Resource(pnaGvr).Namespace(namespace).Get(context.TODO(), pnaName, metav1.GetOptions{})
+	pnaObj, err := getPna(namespace, pnaName, k8sClient)
 	if err != nil {
 		logger.Error(err, "Failed to get the PrivateNetworkAccess CR")
 		return nil
@@ -245,6 +386,15 @@ func getPrivateNetworkIpAddresses(namespace, pnaName string, deploymentList []de
 		}
 		return getAddressesOfPnaDefinedInterfaces(namespace, deploymentList, k8sClient, pnaNetworkName)
 	}
+}
+
+func getPna(namespace string, pnaName string, k8sClient dynamic.Interface) (*unstructured.Unstructured, error) {
+	pnaGvr := schema.GroupVersionResource{Version: "v1alpha1", Group: "ops.dac.nokia.com", Resource: "privatenetworkaccesses"}
+	pnaObj, err := k8sClient.Resource(pnaGvr).Namespace(namespace).Get(context.TODO(), pnaName, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+	return pnaObj, err
 }
 
 func getAddressesOfPnaDefinedInterfaces(namespace string, deploymentList []deploymentId, k8sClient dynamic.Interface, pnaNetworkName string) map[string]string {

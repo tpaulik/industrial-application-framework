@@ -6,6 +6,8 @@ package monitoring
 
 import (
 	"context"
+	"github.com/pkg/errors"
+	"k8s.io/client-go/util/retry"
 
 	app "github.com/nokia/industrial-application-framework/consul-operator/api/v1alpha1"
 	kubelib2 "github.com/nokia/industrial-application-framework/consul-operator/libs/kubelib"
@@ -101,7 +103,7 @@ func (m *Monitor) Run() {
 				}
 
 				m.Instance.Status.AppStatus = status
-				if err := m.RuntimeClient.Status().Update(context.TODO(), m.Instance); nil != err {
+				if err := m.updateAppStatus(m.Instance); nil != err {
 					log.Error(err, "status appStatus update failed")
 				}
 
@@ -110,6 +112,31 @@ func (m *Monitor) Run() {
 			AddFunc: func(obj interface{}) {},
 		}, m.pauseChannel)
 }
+
+func (m *Monitor) updateAppStatus(instance *app.Consul) error {
+	appStatus := instance.Status.AppStatus
+	key := client.ObjectKey{
+		Namespace: instance.GetNamespace(),
+		Name:      instance.GetName(),
+	}
+
+	err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		err := m.RuntimeClient.Get(context.TODO(), key, instance)
+		if err != nil {
+			return err
+		}
+		instance.Status.AppStatus = appStatus
+		err = m.RuntimeClient.Status().Update(context.TODO(), instance)
+		return err
+	})
+
+	if err != nil {
+		return errors.Wrap(err, "failed app status update")
+	}
+
+	return nil
+}
+
 
 func (m *Monitor) Pause() {
 	if m.Running {

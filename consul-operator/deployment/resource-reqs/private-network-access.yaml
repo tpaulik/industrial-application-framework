@@ -9,9 +9,29 @@ metadata:
   name: private-network-for-consul
 spec:
   customerNetwork: [[ .PrivateNetworkAccess.CustomerNetwork ]]
-  apnUUID: [[ .PrivateNetworkAccess.ApnUUID ]]
-  additionalRoutes:
-  [[ range .PrivateNetworkAccess.AdditionalRoutes ]]
-  - [[ . ]]
+  [[ if .PrivateNetworkAccess.ApnUUID ]]
+  networks:
+    - apnUUID: [[ .PrivateNetworkAccess.ApnUUID ]]
+      [[ if .PrivateNetworkAccess.AdditionalRoutes ]]
+      additionalRoutes:
+        [[ range .PrivateNetworkAccess.AdditionalRoutes ]]
+        - [[ . ]]
+        [[ end ]]
+      [[ end ]]
+  [[ else if .PrivateNetworkAccess.Networks ]]
+  networks:
+  [[ range .PrivateNetworkAccess.Networks ]]
+    [[ if .ApnUUID ]]
+    - apnUUID: [[ .ApnUUID ]]
+    [[ else if .NetworkID ]]
+    - networkId: [[ .NetworkID ]]
+    [[ end ]]
+    [[ if .AdditionalRoutes ]]
+      additionalRoutes:
+        [[ range .AdditionalRoutes ]]
+        - [[ . ]]
+        [[ end ]]
+    [[ end ]]
+  [[ end ]]
   [[ end ]]
 [[ end ]]
