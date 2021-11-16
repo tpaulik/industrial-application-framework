@@ -19,12 +19,16 @@ const (
 )
 
 type PrivateNetworkAccess struct {
-	ApnUUID              string    `json:"apnUUID,omitempty"`
-	Networks             []Network `json:"networks,omitempty"`
-	CustomerNetwork      string    `json:"customerNetwork"`
-	AdditionalRoutes     []string  `json:"additionalRoutes,omitempty"`
-	NetworkInterfaceName string    `json:"networkInterfaceName,omitempty"`
-	AppPodFixIp          string    `json:"appPodFixIp,omitempty"`
+	ApnUUID              string            `json:"apnUUID,omitempty"`
+	Networks             []Network         `json:"networks,omitempty"`
+	CustomerNetwork      string            `json:"customerNetwork"`
+	AdditionalRoutes     []string          `json:"additionalRoutes,omitempty"`
+	NetworkInterfaceName string            `json:"networkInterfaceName,omitempty"`
+	AppPodFixIp          AppPodFixIp       `json:"appPodFixIp,omitempty"`
+}
+
+type AppPodFixIp struct {
+	Db	string	`json:"db"`
 }
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
