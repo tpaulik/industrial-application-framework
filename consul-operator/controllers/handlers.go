@@ -254,7 +254,6 @@ func (r *ConsulReconciler) updateStatus(instance *app.Consul) error {
 	return nil
 }
 
-
 func (r *ConsulReconciler) handleCreate(instance *app.Consul, namespace string) (reconcile.Result, error) {
 	logger := log.WithName("handlers").WithName("handleCreate").WithValues("namespace", namespace, "name", instance.ObjectMeta.Name)
 	logger.Info("Called")
@@ -431,6 +430,7 @@ func getAddressesOfPnaDefinedInterfaces(namespace string, deploymentList []deplo
 
 func getAddressOfDummyInterface(namespace string, deploymentList []deploymentId, k8sClient dynamic.Interface) map[string]string {
 	logger := log.WithName("getAddressOfDummyInterface")
+	retIpAddresses := make(map[string]string)
 	for _, deployment := range deploymentList {
 		deploymentGvr := schema.GroupVersionResource{Version: "v1", Group: "apps", Resource: string(deployment.deploymentType)}
 		deploymentObj, err := k8sClient.Resource(deploymentGvr).Namespace(namespace).Get(context.TODO(), deployment.name, metav1.GetOptions{})
@@ -450,21 +450,18 @@ func getAddressOfDummyInterface(namespace string, deploymentList []deploymentId,
 					rg, err := regexp.Compile(`ip\s*link\s*add\s*name\s*.*?\s*type\s*dummy\s*&&\s*ip\s*addr\s*add\s*(?P<customerIP>.*?)/32`)
 					if err != nil {
 						logger.Error(err, "failed to compile the regular expression")
-						return nil
+						break
 					}
 					result := rg.FindStringSubmatch(args.([]interface{})[0].(string))
 					if result != nil {
 						logger.Info("Found IP to use from dummy interface " + result[1])
-						retIpAddresses := make(map[string]string)
 						retIpAddresses[string(deployment.deploymentType)+"/"+deployment.name] = result[1]
-						return retIpAddresses
 					}
 				} else {
 					logger.Error(nil, "Failed to read init container args", "type", deployment.deploymentType, "name", deployment.name)
 				}
 			}
 		}
-		return nil
 	}
-	return nil
+	return retIpAddresses
 }
