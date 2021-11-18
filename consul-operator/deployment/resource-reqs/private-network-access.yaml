@@ -10,7 +10,7 @@ metadata:
 spec:
   customerNetwork: [[ .PrivateNetworkAccess.CustomerNetwork ]]
   [[ if .PrivateNetworkAccess.AppPodFixIp ]]
-  appPodFixIp: [[ .PrivateNetworkAccess.AppPodFixIp ]]
+  appPodFixIp:
     [[ if  .PrivateNetworkAccess.AppPodFixIp.Db ]]
     statefulset.apps/example-consul: [[ .PrivateNetworkAccess.AppPodFixIp.Db ]]
     [[ end ]]
