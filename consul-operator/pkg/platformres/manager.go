@@ -5,6 +5,7 @@
 package platformres
 
 import (
+	"fmt"
 	kubelib2 "github.com/nokia/industrial-application-framework/consul-operator/libs/kubelib"
 	"github.com/nokia/industrial-application-framework/consul-operator/pkg/k8sdynamic"
 	"github.com/pkg/errors"
@@ -93,7 +94,7 @@ func ApplyPnaResourceRequests(namespace string) ([]k8sdynamic.ResourceDescriptor
 func WaitUntilResourcesGranted(resourceList []k8sdynamic.ResourceDescriptor, timeout time.Duration) error {
 	logger := log.WithName("WaitUntilResourcesGranted")
 
-	var stopperList []chan struct{}
+	var stopperList = make(map[string](chan struct{}))
 	var waitGroup sync.WaitGroup
 	var results []*bool
 
@@ -108,17 +109,20 @@ func WaitUntilResourcesGranted(resourceList []k8sdynamic.ResourceDescriptor, tim
 			"",
 			resource.Gvr.GetGvr(),
 			stopper,
+			&stopperList,
 			&waitGroup,
 			&result,
 		)
-		stopperList = append(stopperList, stopper)
+		stopperList[resource.Name] = stopper
 	}
 
 	if waitTimeout(&waitGroup, timeout) {
-		for _, stopper := range stopperList {
+		var timedOutResources []string
+		for resName, stopper := range stopperList {
+			timedOutResources = append(timedOutResources, resName)
 			close(stopper)
 		}
-		return errors.New("waiting for the approval of the platform resource requests timed out")
+		return errors.New(fmt.Sprintf("waiting for the approval of the following platform resource requests timed out: %v", timedOutResources))
 	} else {
 		for _, result := range results {
 			if !*result {
@@ -149,7 +153,7 @@ func waitTimeout(wg *sync.WaitGroup, timeout time.Duration) bool {
 	}
 }
 
-func startWatchResourceRequest(name string, namespace string, resourceVersion string, gvr schema.GroupVersionResource, stopper chan struct{}, waitGroup *sync.WaitGroup, result *bool) {
+func startWatchResourceRequest(name string, namespace string, resourceVersion string, gvr schema.GroupVersionResource, stopper chan struct{}, stopperList *map[string]chan struct{}, waitGroup *sync.WaitGroup, result *bool) {
 	logger := log.WithName("StartWatchResourceRequest").WithValues("resource", name)
 
 	logger.Info("Watching resource")
@@ -181,6 +185,7 @@ func startWatchResourceRequest(name string, namespace string, resourceVersion st
 					}
 					waitGroup.Done()
 					close(stopper)
+					delete(*stopperList, name)
 				}
 			},
 			AddFunc: func(obj interface{}) {
@@ -190,6 +195,7 @@ func startWatchResourceRequest(name string, namespace string, resourceVersion st
 					*result = true
 					waitGroup.Done()
 					close(stopper)
+					delete(*stopperList, name)
 				}
 			},
 		},
