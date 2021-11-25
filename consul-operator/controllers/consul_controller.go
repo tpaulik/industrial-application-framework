@@ -29,12 +29,12 @@ type ConsulReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=app.dac.nokia.com,resources=consuls,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=app.dac.nokia.com,resources=consuls/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=app.dac.nokia.com,resources=consuls/finalizers,verbs=update
-//+kubebuilder:rbac:groups=ops.dac.nokia.com,resources=*,verbs=create;delete;get;list;patch;update;watch
-//+kubebuilder:rbac:groups=extensions,resources=ingresses,verbs=*
-//+kubebuilder:rbac:groups="",resources=pods;services;endpoints;events;configmaps;secrets,verbs=create;delete;get;list;watch;patch;update
+//+kubebuilder:rbac:groups=app.dac.nokia.com,namespace=app-ns,resources=consuls,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=app.dac.nokia.com,namespace=app-ns,resources=consuls/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=app.dac.nokia.com,namespace=app-ns,resources=consuls/finalizers,verbs=update
+//+kubebuilder:rbac:groups=ops.dac.nokia.com,namespace=app-ns,resources=*,verbs=create;delete;get;list;patch;update;watch
+//+kubebuilder:rbac:groups=extensions,resources=ingresses,verbs=*,namespace=app-ns
+//+kubebuilder:rbac:groups="",namespace=app-ns,resources=pods;services;endpoints;events;configmaps;secrets,verbs=create;delete;get;list;watch;patch;update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
