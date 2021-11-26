@@ -284,11 +284,15 @@ following commands.
    
    After generating kustomize bases and a kustomization.yaml, you can generate a bundle or package manifests.
 
-   To generate a bundle:
-   >kustomize build config/manifests | operator-sdk generate bundle --version 0.0.1
+   Package manifests way of packaging is deprecated, but NDAC Application Framework still uses it, therefore that should be generated until Application Framework switches to bundles.
 
    To generate package manifests:
    >kustomize build config/manifests | operator-sdk generate packagemanifests --version 0.0.1
+
+   To generate a bundle:
+   >kustomize build config/manifests | operator-sdk generate bundle --version 0.0.1
+
+   More information on bundles: https://github.com/operator-framework/operator-registry/#manifest-format
 
    You need to insert an exact docker image of your application specific operator to the CSV file.
 
