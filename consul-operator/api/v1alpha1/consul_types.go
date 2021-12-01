@@ -24,7 +24,7 @@ type PrivateNetworkAccess struct {
 	CustomerNetwork      string      `json:"customerNetwork"`
 	AdditionalRoutes     []string    `json:"additionalRoutes,omitempty"`
 	NetworkInterfaceName string      `json:"networkInterfaceName,omitempty"`
-	AppPodFixIp          AppPodFixIp `json:"appPodFixIp,omitempty"`
+	AppPodFixIp          *AppPodFixIp `json:"appPodFixIp,omitempty"`
 }
 
 type AppPodFixIp struct {
