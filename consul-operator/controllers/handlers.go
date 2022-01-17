@@ -270,6 +270,13 @@ func (r *ConsulReconciler) handleCreate(instance *app.Consul, namespace string) 
 		return reconcile.Result{}, nil
 	}
 
+	//Execute templating for the app-deplyoment directory using the values from the CR
+	appDeploymentTemplater, err := template.NewTemplater(instance.Spec, namespace, "app-deployment")
+	if err != nil {
+		logger.Error(err, "Failed to initialize the appDeploymentTemplater")
+		return reconcile.Result{}, nil
+	}
+
 	//Request NDAC platform resources
 	appliedPlatformResourceDescriptors, err := platformres.ApplyPlatformResourceRequests(namespace)
 	if err != nil {
@@ -280,13 +287,6 @@ func (r *ConsulReconciler) handleCreate(instance *app.Consul, namespace string) 
 	err = platformres.WaitUntilResourcesGranted(appliedPlatformResourceDescriptors, time.Second*500)
 	if err != nil {
 		logger.Error(err, "failed to get all of the requested platform resources")
-		return reconcile.Result{}, nil
-	}
-
-	//Execute templating for the app-deplyoment directory using the values from the CR
-	appDeploymentTemplater, err := template.NewTemplater(instance.Spec, namespace, "app-deployment")
-	if err != nil {
-		logger.Error(err, "Failed to initialize the appDeploymentTemplater")
 		return reconcile.Result{}, nil
 	}
 
