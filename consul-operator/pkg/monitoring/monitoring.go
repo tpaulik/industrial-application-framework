@@ -165,6 +165,7 @@ func (m *Monitor) GetApplicationStatus() app.AppStatus {
 func (m *Monitor) watchInformer(eventHandler cache.ResourceEventHandler, stopper chan struct{}) {
 	listOptionsFunc := internalinterfaces.TweakListOptionsFunc(func(options *v1.ListOptions) {
 		options.LabelSelector = "statusCheck=true"
+		options.ResourceVersion = "0"
 	})
 
 	informer := informersv1.NewFilteredPodInformer(
