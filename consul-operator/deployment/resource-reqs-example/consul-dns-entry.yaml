@@ -8,6 +8,6 @@ kind: DnsEntry
 metadata:
   name: consul-dns-entry
 spec:
-  domainName: consul.company.com
+  domainName: consul #the configured DNS zone will be added, so if zone is local.dac.nokia.com then the final domain that can used to access the app will be: consul.local.dac.nokia.com
   deploymentName: example-consul
   deploymentType: statefulsets
