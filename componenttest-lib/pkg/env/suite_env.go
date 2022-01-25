@@ -8,7 +8,6 @@ package env
 
 import (
 	"context"
-	"github.com/prometheus/common/log"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	v1 "k8s.io/api/core/v1"
 	k8sapierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -49,6 +48,8 @@ var testenv *envtest.Environment
 var CrdPathsToAdd []string
 var namespaceControllerStopper chan struct{}
 
+var log = logf.Log.WithName("suite_env")
+
 func TearUpTestEnv(testBinariesPath string, crdPaths ...string) {
 	var err error
 
@@ -75,7 +76,7 @@ func TearUpTestEnv(testBinariesPath string, crdPaths ...string) {
 	}
 	CrdPathsToAdd = append(defaultCRDPaths, crdPaths...)
 	testenv = &envtest.Environment{
-		CRDDirectoryPaths: CrdPathsToAdd,
+		CRDDirectoryPaths:     CrdPathsToAdd,
 		ErrorIfCRDPathMissing: false,
 	}
 
