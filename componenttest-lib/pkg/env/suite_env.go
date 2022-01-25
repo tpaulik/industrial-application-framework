@@ -48,6 +48,8 @@ var testenv *envtest.Environment
 var CrdPathsToAdd []string
 var namespaceControllerStopper chan struct{}
 
+var log = logf.Log.WithName("suite_env")
+
 func TearUpTestEnv(testBinariesPath string, crdPaths ...string) {
 	var err error
 
