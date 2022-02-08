@@ -79,7 +79,7 @@ service:
   consuldns: [[ .Ports.ConsulDns ]]
   server: [[ .Ports.Server ]]
 ```
-The name of the variable comes from the defined go structure [consul_types.go](pkg/apis/dac/v1alpha1/consul_types.go)
+The name of the variable comes from the defined go structure [consul_types.go](api/v1alpha1/consul_types.go)
 ```go
 type ConsulSpec struct {
 	ReplicaCount int   `json:"replicaCount"`
