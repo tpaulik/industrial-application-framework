@@ -29,7 +29,7 @@ using a domain name. The domain name should come from the app spec CR, defined b
 register the domain name in his/her own DNS server which should point to the ingress controller of the application
 framework.
 Applications should use the domain name(s) given in the app spec CR and create [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/)
-resources, like this [example]((deployment/app-deployment/templates/consul-ingress.yaml))
+resources, like this [example](deployment/app-deployment/templates/consul-ingress.yaml)
 To test if you can reach the service of the application via the ingress controller, you can use a PC which can access the
 IP of the ingress controller, and execute the follwing command:
 ```
@@ -79,7 +79,7 @@ service:
   consuldns: [[ .Ports.ConsulDns ]]
   server: [[ .Ports.Server ]]
 ```
-The name of the variable comes from the defined go structure [consul_types.go](pkg/apis/dac/v1alpha1/consul_types.go)
+The name of the variable comes from the defined go structure [consul_types.go](api/v1alpha1/consul_types.go)
 ```go
 type ConsulSpec struct {
 	ReplicaCount int   `json:"replicaCount"`
