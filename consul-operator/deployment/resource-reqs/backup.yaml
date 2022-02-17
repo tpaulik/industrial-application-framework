@@ -1,0 +1,6 @@
+apiVersion: ops.dac.nokia.com/v1alpha1
+kind: Backup
+metadata:
+  name: backup-consul
+spec:
+  bucketSize: 100Mi
