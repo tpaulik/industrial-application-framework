@@ -126,6 +126,33 @@ var _ = Describe("consul-operator", func() {
 				return err
 			}, 35*time.Second, time.Second*1).Should(BeNil())
 		})
+		It("creates a dummy pod with consul name and sets it to running", func() {
+			fakePodCr := getStaticPodCr()
+			err = k8sClient.Create(context.TODO(), fakePodCr)
+			Expect(err).NotTo(HaveOccurred())
+
+			fakePodCr.Status = corev1.PodStatus{
+				Phase:             corev1.PodRunning,
+				ContainerStatuses: []corev1.ContainerStatus{corev1.ContainerStatus{Ready: true}},
+			}
+
+			err = k8sClient.Status().Update(context.TODO(), fakePodCr)
+			Expect(err).NotTo(HaveOccurred())
+
+			consulCrResourceId := K8sResourceId{
+				Name:      metadataName,
+				Namespace: consulTestNamespace,
+				ParamPath: []string{"status", "appStatus"},
+				Gvk: schema.GroupVersionKind{
+					Group:   gvkAppGroup,
+					Version: gvkVersion,
+					Kind:    gvkConsulKind,
+				},
+			}
+
+			Expect(consulCrResourceId).To(EqualsK8sRes("RUNNING", 35*time.Second))
+
+		})
 	})
 
 })
@@ -156,6 +183,31 @@ func getConsulCrInstance() *appdacnokiacomv1alpha1.Consul {
 	}
 
 	return &consulCrInstance
+}
+
+func getStaticPodCr() *corev1.Pod {
+	staticPodCr := &corev1.Pod{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "Pod",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "example-consul",
+			Namespace: consulTestNamespace,
+			Labels:    map[string]string{"app": "example-consul", "statusCheck": "true"},
+		},
+		Spec: corev1.PodSpec{
+			Containers: []corev1.Container{corev1.Container{
+				Name:  "example-consul",
+				Image: "registry.dac.nokia.com/public/consul:1.4.4",
+				Ports: []corev1.ContainerPort{corev1.ContainerPort{
+					ContainerPort: 80,
+					Protocol:      "TCP",
+				}},
+			}},
+		},
+	}
+	return staticPodCr
 }
 
 func createNameSpace(namespace string) {
