@@ -9,6 +9,15 @@ metadata:
   name: private-network-for-consul
 spec:
   customerNetwork: [[ .PrivateNetworkAccess.CustomerNetwork ]]
+  [[ if .PrivateNetworkAccess.AppPodFixIp ]]
+  appPodFixIp:
+    [[ if  .PrivateNetworkAccess.AppPodFixIp.Db ]]
+    statefulset.apps/example-consul: [[ .PrivateNetworkAccess.AppPodFixIp.Db ]]
+    [[ end ]]
+  [[ end ]]
+  [[ if .PrivateNetworkAccess.NetworkInterfaceName ]]
+  networkInterfaceName: [[ .PrivateNetworkAccess.NetworkInterfaceName ]]
+  [[ end ]]
   [[ if .PrivateNetworkAccess.ApnUUID ]]
   networks:
     - apnUUID: [[ .PrivateNetworkAccess.ApnUUID ]]

@@ -65,7 +65,16 @@ spec:
                     type: array
                   apnUUID:
                     type: string
+                  appPodFixIp:
+                    properties:
+                      db:
+                        type: string
+                    required:
+                    - db
+                    type: object
                   customerNetwork:
+                    type: string
+                  networkInterfaceName:
                     type: string
                   networks:
                     items:
@@ -171,7 +180,16 @@ spec:
                         type: array
                       apnUUID:
                         type: string
+                      appPodFixIp:
+                        properties:
+                          db:
+                            type: string
+                        required:
+                        - db
+                        type: object
                       customerNetwork:
+                        type: string
+                      networkInterfaceName:
                         type: string
                       networks:
                         items:
