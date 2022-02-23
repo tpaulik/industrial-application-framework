@@ -149,9 +149,27 @@ var _ = Describe("consul-operator", func() {
 					Kind:    gvkConsulKind,
 				},
 			}
+			Expect(consulCrResourceId).To(EqualsK8sRes("RUNNING", 10*time.Second))
+		})
+		It("undeploys the operator", func() {
+			err = k8sClient.Delete(context.TODO(), consulCrInstance)
+			Expect(err).NotTo(HaveOccurred())
 
-			Expect(consulCrResourceId).To(EqualsK8sRes("RUNNING", 35*time.Second))
+		})
+		It("removes the finalizer from the app CR and let kubernetes delete the app CR", func() {
+			Eventually(func() error {
+				err = k8sClient.Get(context.TODO(), types.NamespacedName{Namespace: consulTestNamespace, Name: metadataName}, consulCrInstance)
+				return err
+			}, 10*time.Second, time.Second*1).Should(HaveOccurred())
+		})
+		It("checks if the Stateful set and all resources are removed", func() {
+			_, err = kubelib.GetKubeAPI().AppsV1().StatefulSets(consulTestNamespace).Get(context.TODO(), "example-consul", metav1.GetOptions{})
 
+			Expect(k8serrors.IsNotFound(err)).To(BeTrue())
+
+			for cr, kind := range resourceKindByCr {
+				checkIfResourceDoesNotExist(cr, kind)
+			}
 		})
 	})
 
@@ -246,6 +264,17 @@ func createResourceCr(name string, namespace string, kind string) K8sResourceId 
 		Namespace: namespace,
 		Gvk:       schema.GroupVersionKind{Group: gvkResourceGroup, Version: gvkVersion, Kind: kind},
 	}
+}
+
+func checkIfResourceDoesNotExist(resourceCrName string, kind string) {
+	var gvr schema.GroupVersionResource
+	var err error
+
+	gvr, _, err = GetGvrAndAPIResources(schema.GroupVersionKind{Group: gvkResourceGroup, Version: gvkVersion, Kind: kind})
+	Expect(err).NotTo(HaveOccurred())
+
+	_, err = ctk8sclient.GetDynamicK8sClient(ctenv.Cfg).Resource(gvr).Namespace(consulTestNamespace).Get(context.TODO(), resourceCrName, metav1.GetOptions{})
+	Expect(k8serrors.IsNotFound(err)).To(BeTrue())
 }
 
 func deleteNameSpace(namespace string) {
