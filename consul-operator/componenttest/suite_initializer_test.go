@@ -30,6 +30,7 @@ var _ = AfterSuite(func() {
 var ourScheme = k8sruntime.NewScheme()
 
 func init() {
+
 	utilruntime.Must(clientgoscheme.AddToScheme(ourScheme))
 
 	utilruntime.Must(appdacnokiacomv1alpha1.AddToScheme(ourScheme))
