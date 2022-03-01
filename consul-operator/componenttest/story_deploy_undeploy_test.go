@@ -9,6 +9,7 @@ import (
 	"github.com/nokia/industrial-application-framework/consul-operator/libs/kubelib"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
@@ -27,6 +28,12 @@ var log = logf.Log.WithName("consulTests")
 var k8sClient client.Client
 var consulOperatorCr *appdacnokiacomv1alpha1.Consul
 
+type resource struct {
+	resourceName   string
+	kind           string
+	statusContents map[string]interface{}
+}
+
 var _ = Describe("deploy/undeploy case", func() {
 	BeforeEach(func() {
 	}, 60)
@@ -35,12 +42,42 @@ var _ = Describe("deploy/undeploy case", func() {
 	}, 60)
 
 	var err error
-	var resourceKindByCr = map[string]string{
-		"consul-metricsendpoint":     "MetricsEndpoint",
-		"private-network-for-consul": "PrivateNetworkAccess",
-		"resource-for-consul":        "Resourcerequest",
-		"storage-for-db":             "Storage",
+
+	var metricsEndpoint = resource{
+		resourceName: "consul-metricsendpoint",
+		kind:         "MetricsEndpoint",
+		statusContents: map[string]interface{}{
+			"approvalStatus": approved,
+		},
 	}
+
+	var privateNetwork = resource{
+		resourceName: "private-network-for-consul",
+		kind:         "PrivateNetworkAccess",
+		statusContents: map[string]interface{}{
+			"approvalStatus": approved,
+			"assignedNetwork": map[string]interface{}{
+				"name": "anyDummyNetwork",
+			},
+		},
+	}
+
+	var resourceRequest = resource{
+		resourceName: "resource-for-consul",
+		kind:         "Resourcerequest",
+		statusContents: map[string]interface{}{
+			"approvalStatus": approved,
+		},
+	}
+
+	var storage = resource{
+		resourceName: "storage-for-db",
+		kind:         "Storage",
+		statusContents: map[string]interface{}{
+			"approvalStatus": approved,
+		},
+	}
+
 	var consulCrInstance *appdacnokiacomv1alpha1.Consul
 
 	Describe("deploy case", func() {
@@ -63,13 +100,17 @@ var _ = Describe("deploy/undeploy case", func() {
 				Expect(err).NotTo(HaveOccurred())
 			})
 			It("executes the resource CRs and they get approved", func() {
-				for cr, kind := range resourceKindByCr {
-					Expect(createResourceCr(cr, consulTestNamespace, kind)).To(ExistsK8sRes(10 * time.Second))
-				}
 
-				for cr, kind := range resourceKindByCr {
-					approveResource(cr, kind)
-				}
+				Expect(createResourceCr(metricsEndpoint.resourceName, consulTestNamespace, metricsEndpoint.kind)).To(ExistsK8sRes(5 * time.Second))
+				Expect(createResourceCr(privateNetwork.resourceName, consulTestNamespace, privateNetwork.kind)).To(ExistsK8sRes(5 * time.Second))
+				Expect(createResourceCr(resourceRequest.resourceName, consulTestNamespace, resourceRequest.kind)).To(ExistsK8sRes(5 * time.Second))
+				Expect(createResourceCr(storage.resourceName, consulTestNamespace, storage.kind)).To(ExistsK8sRes(5 * time.Second))
+
+				approveResource(metricsEndpoint)
+				approveResource(privateNetwork)
+				approveResource(resourceRequest)
+				approveResource(storage)
+
 			})
 			It("checks if the stateful set is present", func() {
 
@@ -77,6 +118,18 @@ var _ = Describe("deploy/undeploy case", func() {
 					_, err = kubelib.GetKubeAPI().AppsV1().StatefulSets(consulTestNamespace).Get(context.TODO(), "example-consul", metav1.GetOptions{})
 					return err
 				}, 35*time.Second, time.Second*1).Should(BeNil())
+			})
+			It("updates the stateful set to contain initContainers", func() {
+				var consulStatefulSet *appsv1.StatefulSet
+				consulStatefulSet, err = kubelib.GetKubeAPI().AppsV1().StatefulSets(consulTestNamespace).Get(context.TODO(), "example-consul", metav1.GetOptions{})
+
+				consulStatefulSet.Spec.Template.Spec.InitContainers = []corev1.Container{corev1.Container{
+					Name:  "appfw-private-network-routing",
+					Image: "registry.dac.nokia.com/public/calico/node:v3.18.2",
+					Args:  []string{initcontainerArgs},
+				}}
+
+				kubelib.GetKubeAPI().AppsV1().StatefulSets(consulTestNamespace).Update(context.TODO(), consulStatefulSet, metav1.UpdateOptions{})
 			})
 			It("creates a dummy pod with consul name and sets it to running", func() {
 				fakePodCr := getStaticPodCr()
@@ -102,6 +155,19 @@ var _ = Describe("deploy/undeploy case", func() {
 					},
 				}
 				Expect(consulCrResourceId).To(EqualsK8sRes("RUNNING", 10*time.Second))
+			})
+			It("updates stateful set and checks if the app reported data shows the fixed pod Ip", func() {
+				consulCrResourceId := K8sResourceId{
+					Name:      consulAppName,
+					Namespace: consulTestNamespace,
+					ParamPath: []string{"status", "appReportedData", "privateNetworkIpAddresses", "statefulsets/example-consul"},
+					Gvk: schema.GroupVersionKind{
+						Group:   gvkAppGroup,
+						Version: gvkVersion,
+						Kind:    gvkConsulKind,
+					},
+				}
+				Eventually(consulCrResourceId, 10*time.Second, time.Second*1).Should(EqualsK8sRes("10.32.1.2"))
 			})
 		})
 		Describe("License Expired Case", func() {
@@ -161,7 +227,7 @@ var _ = Describe("deploy/undeploy case", func() {
 						Kind:    gvkConsulKind,
 					},
 				}
-				Expect(consulCrResourceId).To(EqualsK8sRes("RUNNING", 10*time.Second))
+				Expect(consulCrResourceId).To(EqualsK8sRes("RUNNING", 35*time.Second))
 			})
 		})
 		Describe("app status monitoring case", func() {
@@ -189,7 +255,7 @@ var _ = Describe("deploy/undeploy case", func() {
 				}
 				Expect(consulCrResourceId).To(EqualsK8sRes("NOT_RUNNING", 10*time.Second))
 			})
-			It("Once the pot status is set back to running, the application resolvsed its running state as well", func() {
+			It("Once the pot status is set back to running, the application resolved its running state as well", func() {
 				fakePodCr := getStaticPodCr()
 
 				fakePodCr.Status = corev1.PodStatus{
@@ -214,6 +280,9 @@ var _ = Describe("deploy/undeploy case", func() {
 			})
 
 		})
+		Describe("App reported data case", func() {
+
+		})
 		Describe("undeploy case", func() {
 			It("undeploys the operator", func() {
 				err = k8sClient.Delete(context.TODO(), consulCrInstance)
@@ -235,9 +304,11 @@ var _ = Describe("deploy/undeploy case", func() {
 
 				Eventually(k8serrors.IsNotFound(err), 10*time.Second, time.Second*1).Should(BeTrue())
 
-				for cr, kind := range resourceKindByCr {
-					checkIfResourceDoesNotExist(cr, kind)
-				}
+				checkIfResourceDoesNotExist(metricsEndpoint.resourceName, metricsEndpoint.kind)
+				checkIfResourceDoesNotExist(privateNetwork.resourceName, privateNetwork.kind)
+				checkIfResourceDoesNotExist(resourceRequest.resourceName, resourceRequest.kind)
+				checkIfResourceDoesNotExist(storage.resourceName, storage.kind)
+
 			})
 
 		})
@@ -256,19 +327,17 @@ func createNameSpace(namespace string) {
 	Expect(err).NotTo(HaveOccurred())
 }
 
-func approveResource(resourceCrName string, kind string) {
+func approveResource(resourceDef resource) {
 	var gvr schema.GroupVersionResource
 	var resourceSpecCr *unstructured.Unstructured
 	var err error
 
-	gvr, _, err = GetGvrAndAPIResources(schema.GroupVersionKind{Group: gvkResourceGroup, Version: gvkVersion, Kind: kind})
+	gvr, _, err = GetGvrAndAPIResources(schema.GroupVersionKind{Group: gvkResourceGroup, Version: gvkVersion, Kind: resourceDef.kind})
 	Expect(err).NotTo(HaveOccurred())
 
-	resourceSpecCr, err = ctk8sclient.GetDynamicK8sClient(ctenv.Cfg).Resource(gvr).Namespace(consulTestNamespace).Get(context.TODO(), resourceCrName, metav1.GetOptions{})
+	resourceSpecCr, err = ctk8sclient.GetDynamicK8sClient(ctenv.Cfg).Resource(gvr).Namespace(consulTestNamespace).Get(context.TODO(), resourceDef.resourceName, metav1.GetOptions{})
 	Expect(err).NotTo(HaveOccurred())
-	resourceSpecCr.Object["status"] = map[string]interface{}{
-		"approvalStatus": approved,
-	}
+	resourceSpecCr.Object["status"] = resourceDef.statusContents
 
 	resourceSpecCr, err = ctk8sclient.GetDynamicK8sClient(ctenv.Cfg).Resource(gvr).Namespace(consulTestNamespace).UpdateStatus(context.TODO(), resourceSpecCr, metav1.UpdateOptions{})
 	Expect(err).NotTo(HaveOccurred())

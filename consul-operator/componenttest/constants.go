@@ -12,6 +12,8 @@ const (
 	apiVersion    = "app.dac.nokia.com/v1alpha1"
 	consulAppName = "consul-app"
 
+	initcontainerArgs = "iptables -t nat -A POSTROUTING -o appfw-appnet13 -j SNAT --to-source 10.32.1.2 && ip a && mkdir -p /etc/iproute2 && touch /etc/iproute2/rt_tables && echo 200 custom >> /etc/iproute2/rt_tables && ip rule add from 10.32.1.2/32 lookup custom && ip route add default via 169.254.151.193 dev appfw-appnet13 table custom && ip route add 192.168.245.0/24 via 169.254.151.193 dev appfw-appnet13 && ip link add name private-net type dummy && ip addr add 10.32.1.2/32 brd + dev private-net && ip link set private-net up"
+
 	approved = "Approved"
 
 	altPort   = 8400
@@ -104,6 +106,11 @@ func getStaticPodCr() *corev1.Pod {
 					ContainerPort: 80,
 					Protocol:      "TCP",
 				}},
+			}},
+			InitContainers: []corev1.Container{corev1.Container{
+				Name:  "appfw-private-network-routing",
+				Image: "registry.dac.nokia.com/public/calico/node:v3.18.2",
+				Args:  []string{initcontainerArgs},
 			}},
 		},
 	}
