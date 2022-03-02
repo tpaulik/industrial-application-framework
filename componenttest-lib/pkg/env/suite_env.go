@@ -9,6 +9,7 @@ package env
 import (
 	"context"
 	clientv3 "go.etcd.io/etcd/client/v3"
+	"io/ioutil"
 	v1 "k8s.io/api/core/v1"
 	k8sapierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/informers"
@@ -16,6 +17,7 @@ import (
 	"k8s.io/client-go/tools/cache"
 	"os"
 	"path/filepath"
+	"strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -42,7 +44,13 @@ const (
 	defaultKubebuilderPath             = "/usr/local/kubebuilder/bin"
 )
 
+type LocalConfig struct {
+	CertDir    string
+	KubeConfig string
+}
+
 var Cfg *rest.Config
+var LocalCfg LocalConfig
 var k8sClient client.Client
 var testenv *envtest.Environment
 var CrdPathsToAdd []string
@@ -81,6 +89,12 @@ func TearUpTestEnv(testBinariesPath string, crdPaths ...string) {
 	}
 
 	Cfg, err = testenv.Start()
+	if err != nil {
+		panic(err)
+	}
+
+	LocalCfg = LocalConfig{CertDir: testenv.ControlPlane.APIServer.CertDir}
+	LocalCfg.KubeConfig, err = getFilenameFromDirectoryByExtension(LocalCfg.CertDir, "kubecfg")
 	if err != nil {
 		panic(err)
 	}
@@ -167,4 +181,25 @@ func TearDownTestEnv() {
 	By("tearing down the test environment")
 	err := testenv.Stop()
 	Expect(err).NotTo(HaveOccurred())
+}
+
+func getFilenameFromDirectoryByExtension(directoryName string, extension string) (string, error) {
+
+	files, err := ioutil.ReadDir(directoryName)
+	if err != nil {
+		return "", err
+	}
+
+	var result string
+	for _, file := range files {
+		stringSlice := strings.Split(file.Name(), ".")
+
+		if len(stringSlice) > 1 {
+			if stringSlice[len(stringSlice)-1] == extension {
+				result = file.Name()
+			}
+		}
+	}
+
+	return directoryName + "/" + result, nil
 }
