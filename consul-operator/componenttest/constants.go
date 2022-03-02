@@ -13,6 +13,7 @@ const (
 	apiVersion            = "app.dac.nokia.com/v1alpha1"
 	consulAppName         = "consul-app"
 	consulStatefulSetName = "example-consul"
+	consulServiceName     = "example-consul-service"
 
 	appPodFixIp = "10.32.1.2"
 
@@ -38,8 +39,8 @@ const (
 
 	apnUUID = "apn:anyApnUUID"
 
-	defaultWaitTimeout = 5 * time.Second
-	testNamespace      = "consul-test-ns"
+	consulTestDefaultTimeout = 5 * time.Second
+	testNamespace            = "consul-test-ns"
 
 	opsGroup  = "ops.dac.nokia.com"
 	appsGroup = "app.dac.nokia.com"

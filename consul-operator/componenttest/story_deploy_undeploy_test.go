@@ -41,14 +41,14 @@ var _ = Describe("Consul Operator Component Tests", func() {
 	var consulStatefulSet *appsv1.StatefulSet
 
 	Describe("Consul Operator deploy case", func() {
-		Context("The Application Framework", func() { //actor
-			It("Creates a test namespace", func() { //mit csinál
+		Context("The Application Framework", func() {
+			It("creates a test namespace", func() {
 				createNameSpace(testNamespace)
 			})
 		})
-		Context("The Consul Operator", func() {
-			It("executes consul CR", func() {
-				consulCrInstance = getConsulCrInstance()
+		Context("The Test Environment", func() {
+			It("sets the necessary environment variables", func() {
+
 				os.Setenv("DEPLOYMENT_DIR", "../deployment")
 				os.Setenv("RESREQ_DIR", "../deployment/resource-reqs-generated")
 				os.Setenv("KUBECONFIG", ctenv.LocalCfg.KubeConfig)
@@ -58,16 +58,22 @@ var _ = Describe("Consul Operator Component Tests", func() {
 				deploymentAbsPath := getTestBinaryPath("/../deployment")
 				path := os.Getenv("PATH")
 				os.Setenv("PATH", path+":"+deploymentAbsPath)
+			})
+		})
+		Context("The Consul Operator", func() {
+			It("executes consul CR", func() {
+
+				consulCrInstance = getConsulCrInstance()
 				err = k8sClient.Create(context.TODO(), consulCrInstance)
 
 				Expect(err).NotTo(HaveOccurred())
 			})
 			It("executes the resource CRs", func() {
 
-				Expect(createResourceCr(metricsEndpoint.resourceName, testNamespace, metricsEndpoint.kind)).To(ExistsK8sRes(defaultWaitTimeout))
-				Expect(createResourceCr(privateNetwork.resourceName, testNamespace, privateNetwork.kind)).To(ExistsK8sRes(defaultWaitTimeout))
-				Expect(createResourceCr(resourceRequest.resourceName, testNamespace, resourceRequest.kind)).To(ExistsK8sRes(defaultWaitTimeout))
-				Expect(createResourceCr(storage.resourceName, testNamespace, storage.kind)).To(ExistsK8sRes(defaultWaitTimeout))
+				Expect(createResourceCr(metricsEndpoint.resourceName, testNamespace, metricsEndpoint.kind)).To(ExistsK8sRes(consulTestDefaultTimeout))
+				Expect(createResourceCr(privateNetwork.resourceName, testNamespace, privateNetwork.kind)).To(ExistsK8sRes(consulTestDefaultTimeout))
+				Expect(createResourceCr(resourceRequest.resourceName, testNamespace, resourceRequest.kind)).To(ExistsK8sRes(consulTestDefaultTimeout))
+				Expect(createResourceCr(storage.resourceName, testNamespace, storage.kind)).To(ExistsK8sRes(consulTestDefaultTimeout))
 			})
 		})
 		Context("The Application Framework", func() {
@@ -111,14 +117,14 @@ var _ = Describe("Consul Operator Component Tests", func() {
 				consulCrResourceId := K8sResourceId{
 					Name:      consulAppName,
 					Namespace: testNamespace,
-					ParamPath: []string{"status", "appReportedData", "privateNetworkIpAddresses", "statefulsets/example-consul"},
+					ParamPath: []string{"status", "appReportedData", "privateNetworkIpAddresses", "statefulsets/" + consulStatefulSetName},
 					Gvk:       consulGvk,
 				}
-				Eventually(consulCrResourceId, 10*time.Second, time.Second*1).Should(EqualsK8sRes(appPodFixIp))
+				Eventually(consulCrResourceId, consulTestDefaultTimeout, time.Second*1).Should(EqualsK8sRes(appPodFixIp))
 			})
 			It("checks if the ports given in the CR are present in the service", func() {
 				var service *corev1.Service
-				service, err = kubelib.GetKubeAPI().CoreV1().Services(testNamespace).Get(context.TODO(), "example-consul-service", metav1.GetOptions{})
+				service, err = kubelib.GetKubeAPI().CoreV1().Services(testNamespace).Get(context.TODO(), consulServiceName, metav1.GetOptions{})
 
 				missingPorts := findMissingPorts(service.Spec.Ports)
 
@@ -146,17 +152,12 @@ var _ = Describe("Consul Operator Component Tests", func() {
 			})
 		})
 		Context("The Consul Operator", func() {
-			It("stops the consul service", func() {
-				//_, err = kubelib.GetKubeAPI().CoreV1().Services(testNamespace).Get(context.TODO(), "example-consul-service", metav1.GetOptions{})
-
-				//Eventually(k8serrors.IsNotFound(err), 10*time.Second, time.Second*1).Should(BeTrue())
-			})
 			It("changes the appStatus to Frozen", func() {
 
-				Expect(consulAppStatusResourceId).To(EqualsK8sRes("FROZEN", 10*time.Second))
+				Expect(consulAppStatusResourceId).To(EqualsK8sRes("FROZEN", consulTestDefaultTimeout))
 			})
 			It("But keeps the stateful set intact", func() {
-				_, err = kubelib.GetKubeAPI().AppsV1().StatefulSets(testNamespace).Get(context.TODO(), "example-consul", metav1.GetOptions{})
+				_, err = kubelib.GetKubeAPI().AppsV1().StatefulSets(testNamespace).Get(context.TODO(), consulStatefulSetName, metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
 			})
 		})
@@ -173,7 +174,7 @@ var _ = Describe("Consul Operator Component Tests", func() {
 		})
 		Context("The Consul Operator", func() {
 			It("Sets the appStatus is to running", func() {
-				Expect(consulAppStatusResourceId).To(EqualsK8sRes("RUNNING", 35*time.Second))
+				Expect(consulAppStatusResourceId).To(EqualsK8sRes("RUNNING", consulTestDefaultTimeout))
 			})
 		})
 	})
@@ -194,7 +195,7 @@ var _ = Describe("Consul Operator Component Tests", func() {
 		})
 		Context("The Consul Application", func() {
 			It("detects the stopped pod and removes its running state", func() {
-				Expect(consulAppStatusResourceId).To(EqualsK8sRes("NOT_RUNNING", 10*time.Second))
+				Expect(consulAppStatusResourceId).To(EqualsK8sRes("NOT_RUNNING", consulTestDefaultTimeout))
 			})
 		})
 	})
@@ -215,7 +216,7 @@ var _ = Describe("Consul Operator Component Tests", func() {
 		})
 		Context("The Consul operator", func() {
 			It("Resumes it status to running", func() {
-				Expect(consulAppStatusResourceId).To(EqualsK8sRes("RUNNING", 10*time.Second))
+				Expect(consulAppStatusResourceId).To(EqualsK8sRes("RUNNING", consulTestDefaultTimeout))
 			})
 		})
 	})
@@ -235,12 +236,12 @@ var _ = Describe("Consul Operator Component Tests", func() {
 				Eventually(func() error {
 					err = k8sClient.Get(context.TODO(), types.NamespacedName{Namespace: testNamespace, Name: consulAppName}, consulCrInstance)
 					return err
-				}, defaultWaitTimeout, time.Second*1).Should(HaveOccurred())
+				}, consulTestDefaultTimeout, time.Second*1).Should(HaveOccurred())
 			})
 			It("checks if the Stateful set and all resources are removed", func() {
-				_, err = kubelib.GetKubeAPI().AppsV1().StatefulSets(testNamespace).Get(context.TODO(), "example-consul", metav1.GetOptions{})
+				_, err = kubelib.GetKubeAPI().AppsV1().StatefulSets(testNamespace).Get(context.TODO(), consulStatefulSetName, metav1.GetOptions{})
 
-				Eventually(k8serrors.IsNotFound(err), defaultWaitTimeout, time.Second*1).Should(BeTrue())
+				Eventually(k8serrors.IsNotFound(err), consulTestDefaultTimeout, time.Second*1).Should(BeTrue())
 
 				checkIfResourceDoesNotExist(metricsEndpoint.resourceName, metricsEndpoint.kind)
 				checkIfResourceDoesNotExist(privateNetwork.resourceName, privateNetwork.kind)
@@ -346,6 +347,6 @@ func deleteNameSpace(namespace string) {
 			return err
 		}
 		return nil
-	}, defaultWaitTimeout).Should(HaveOccurred())
+	}, consulTestDefaultTimeout).Should(HaveOccurred())
 
 }
