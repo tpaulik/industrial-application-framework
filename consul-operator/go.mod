@@ -16,7 +16,3 @@ require (
 	k8s.io/client-go v0.22.1
 	sigs.k8s.io/controller-runtime v0.10.0
 )
-
-replace (
-	github.com/nokia/industrial-application-framework/componenttest-lib => ../componenttest-lib
-)
