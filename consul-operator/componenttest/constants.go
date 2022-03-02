@@ -1,6 +1,7 @@
 package componenttest
 
 import (
+	. "github.com/nokia/industrial-application-framework/componenttest-lib/pkg/matcher"
 	appdacnokiacomv1alpha1 "github.com/nokia/industrial-application-framework/consul-operator/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -9,10 +10,15 @@ import (
 )
 
 const (
-	apiVersion    = "app.dac.nokia.com/v1alpha1"
-	consulAppName = "consul-app"
+	apiVersion            = "app.dac.nokia.com/v1alpha1"
+	consulAppName         = "consul-app"
+	consulStatefulSetName = "example-consul"
 
-	initcontainerArgs = "iptables -t nat -A POSTROUTING -o appfw-appnet13 -j SNAT --to-source 10.32.1.2 && ip a && mkdir -p /etc/iproute2 && touch /etc/iproute2/rt_tables && echo 200 custom >> /etc/iproute2/rt_tables && ip rule add from 10.32.1.2/32 lookup custom && ip route add default via 169.254.151.193 dev appfw-appnet13 table custom && ip route add 192.168.245.0/24 via 169.254.151.193 dev appfw-appnet13 && ip link add name private-net type dummy && ip addr add 10.32.1.2/32 brd + dev private-net && ip link set private-net up"
+	appPodFixIp = "10.32.1.2"
+
+	initcontainerArgs = "iptables -t nat -A POSTROUTING -o appfw-appnet13 -j SNAT --to-source " + appPodFixIp + " " +
+		"&& ip a && mkdir -p /etc/iproute2 && touch /etc/iproute2/rt_tables && echo 200 custom >> /etc/iproute2/rt_tables && ip rule add from " + appPodFixIp + "/32 lookup custom && ip route add default via 169.254.151.193 dev appfw-appnet13 table custom " +
+		"&& ip route add 192.168.245.0/24 via 169.254.151.193 dev appfw-appnet13 && ip link add name private-net type dummy && ip addr add " + appPodFixIp + "/32 brd + dev private-net && ip link set private-net up"
 
 	approved = "Approved"
 
@@ -30,20 +36,69 @@ const (
 	metricsDomain        = "metrics.consul.appdomain.com"
 	networkInterfaceName = "consul-if"
 
-	apnUUID     = "apn:anyApnUUID"
-	appPodFixIp = "127.0.2.0/32"
+	apnUUID = "apn:anyApnUUID"
 
-	operatorDefaultWaitTimeout = 5 * time.Second
-	consulTestNamespace        = "consul-test-ns"
+	defaultWaitTimeout = 5 * time.Second
+	testNamespace      = "consul-test-ns"
 
-	gvkResourceGroup = "ops.dac.nokia.com"
+	opsGroup  = "ops.dac.nokia.com"
+	appsGroup = "app.dac.nokia.com"
 
-	gvkAppGroup   = "app.dac.nokia.com"
-	gvkVersion    = "v1alpha1"
-	gvkConsulKind = "Consul"
+	groupResourceVersion = "v1alpha1"
+	consulKind           = "Consul"
 )
 
-var consulGvk = schema.GroupVersionKind{Group: "app.dac.nokia.com", Version: "v1alpha1", Kind: "Consul"}
+var expectedPorts = []int32{altPort, consulDns, httpPort, httpsPort, serflan, serfwan, server, uiPort} // udp/53 is not included
+
+var consulGvk = schema.GroupVersionKind{Group: appsGroup, Version: groupResourceVersion, Kind: consulKind}
+
+var consulAppStatusResourceId = K8sResourceId{
+	Name:      consulAppName,
+	Namespace: testNamespace,
+	ParamPath: []string{"status", "appStatus"},
+	Gvk:       consulGvk,
+}
+
+type resource struct {
+	resourceName   string
+	kind           string
+	statusContents map[string]interface{}
+}
+
+var metricsEndpoint = resource{
+	resourceName: "consul-metricsendpoint",
+	kind:         "MetricsEndpoint",
+	statusContents: map[string]interface{}{
+		"approvalStatus": approved,
+	},
+}
+
+var privateNetwork = resource{
+	resourceName: "private-network-for-consul",
+	kind:         "PrivateNetworkAccess",
+	statusContents: map[string]interface{}{
+		"approvalStatus": approved,
+		"assignedNetwork": map[string]interface{}{
+			"name": "anyDummyNetwork",
+		},
+	},
+}
+
+var resourceRequest = resource{
+	resourceName: "resource-for-consul",
+	kind:         "Resourcerequest",
+	statusContents: map[string]interface{}{
+		"approvalStatus": approved,
+	},
+}
+
+var storage = resource{
+	resourceName: "storage-for-db",
+	kind:         "Storage",
+	statusContents: map[string]interface{}{
+		"approvalStatus": approved,
+	},
+}
 
 var ports = appdacnokiacomv1alpha1.Ports{
 	UiPort:    uiPort,
@@ -62,12 +117,12 @@ var networks = []appdacnokiacomv1alpha1.Network{{ApnUUID: apnUUID, AdditionalRou
 func getConsulCrInstance() *appdacnokiacomv1alpha1.Consul {
 	consulCrInstance := appdacnokiacomv1alpha1.Consul{
 		TypeMeta: metav1.TypeMeta{
-			Kind:       gvkConsulKind,
+			Kind:       consulKind,
 			APIVersion: apiVersion,
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      consulAppName,
-			Namespace: consulTestNamespace,
+			Namespace: testNamespace,
 		},
 		Spec: appdacnokiacomv1alpha1.ConsulSpec{
 			ReplicaCount:      replicaCount,
@@ -87,6 +142,12 @@ func getConsulCrInstance() *appdacnokiacomv1alpha1.Consul {
 	return &consulCrInstance
 }
 
+var initContainers = []corev1.Container{corev1.Container{
+	Name:  "appfw-private-network-routing",
+	Image: "registry.dac.nokia.com/public/calico/node:v3.18.2",
+	Args:  []string{initcontainerArgs},
+}}
+
 func getStaticPodCr() *corev1.Pod {
 	staticPodCr := &corev1.Pod{
 		TypeMeta: metav1.TypeMeta{
@@ -95,7 +156,7 @@ func getStaticPodCr() *corev1.Pod {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "example-consul",
-			Namespace: consulTestNamespace,
+			Namespace: testNamespace,
 			Labels:    map[string]string{"app": "example-consul", "statusCheck": "true"},
 		},
 		Spec: corev1.PodSpec{
@@ -107,11 +168,7 @@ func getStaticPodCr() *corev1.Pod {
 					Protocol:      "TCP",
 				}},
 			}},
-			InitContainers: []corev1.Container{corev1.Container{
-				Name:  "appfw-private-network-routing",
-				Image: "registry.dac.nokia.com/public/calico/node:v3.18.2",
-				Args:  []string{initcontainerArgs},
-			}},
+			InitContainers: initContainers,
 		},
 	}
 	return staticPodCr

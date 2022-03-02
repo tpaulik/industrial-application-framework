@@ -28,13 +28,7 @@ var log = logf.Log.WithName("consulTests")
 var k8sClient client.Client
 var consulOperatorCr *appdacnokiacomv1alpha1.Consul
 
-type resource struct {
-	resourceName   string
-	kind           string
-	statusContents map[string]interface{}
-}
-
-var _ = Describe("deploy/undeploy case", func() {
+var _ = Describe("Consul Operator Component Tests", func() {
 	BeforeEach(func() {
 	}, 60)
 
@@ -43,54 +37,23 @@ var _ = Describe("deploy/undeploy case", func() {
 
 	var err error
 
-	var metricsEndpoint = resource{
-		resourceName: "consul-metricsendpoint",
-		kind:         "MetricsEndpoint",
-		statusContents: map[string]interface{}{
-			"approvalStatus": approved,
-		},
-	}
-
-	var privateNetwork = resource{
-		resourceName: "private-network-for-consul",
-		kind:         "PrivateNetworkAccess",
-		statusContents: map[string]interface{}{
-			"approvalStatus": approved,
-			"assignedNetwork": map[string]interface{}{
-				"name": "anyDummyNetwork",
-			},
-		},
-	}
-
-	var resourceRequest = resource{
-		resourceName: "resource-for-consul",
-		kind:         "Resourcerequest",
-		statusContents: map[string]interface{}{
-			"approvalStatus": approved,
-		},
-	}
-
-	var storage = resource{
-		resourceName: "storage-for-db",
-		kind:         "Storage",
-		statusContents: map[string]interface{}{
-			"approvalStatus": approved,
-		},
-	}
-
 	var consulCrInstance *appdacnokiacomv1alpha1.Consul
+	var consulStatefulSet *appsv1.StatefulSet
 
-	Describe("deploy case", func() {
-		Context("the appframework", func() { //actor
-			It("creates a test namespace", func() { //mit csinál
-				createNameSpace(consulTestNamespace)
+	Describe("Consul Operator deploy case", func() {
+		Context("The Application Framework", func() { //actor
+			It("Creates a test namespace", func() { //mit csinál
+				createNameSpace(testNamespace)
 			})
+		})
+		Context("The Consul Operator", func() {
 			It("executes consul CR", func() {
 				consulCrInstance = getConsulCrInstance()
 				os.Setenv("DEPLOYMENT_DIR", "../deployment")
 				os.Setenv("RESREQ_DIR", "../deployment/resource-reqs-generated")
 				os.Setenv("KUBECONFIG", ctenv.LocalCfg.KubeConfig)
-				log.Info("Suite Stories", "Kubeconfig file", ctenv.LocalCfg.KubeConfig)
+
+				log.Info("Test Deploy", "Kubeconfig file", ctenv.LocalCfg.KubeConfig)
 
 				deploymentAbsPath := getTestBinaryPath("/../deployment")
 				path := os.Getenv("PATH")
@@ -99,78 +62,73 @@ var _ = Describe("deploy/undeploy case", func() {
 
 				Expect(err).NotTo(HaveOccurred())
 			})
-			It("executes the resource CRs and they get approved", func() {
+			It("executes the resource CRs", func() {
 
-				Expect(createResourceCr(metricsEndpoint.resourceName, consulTestNamespace, metricsEndpoint.kind)).To(ExistsK8sRes(5 * time.Second))
-				Expect(createResourceCr(privateNetwork.resourceName, consulTestNamespace, privateNetwork.kind)).To(ExistsK8sRes(5 * time.Second))
-				Expect(createResourceCr(resourceRequest.resourceName, consulTestNamespace, resourceRequest.kind)).To(ExistsK8sRes(5 * time.Second))
-				Expect(createResourceCr(storage.resourceName, consulTestNamespace, storage.kind)).To(ExistsK8sRes(5 * time.Second))
-
+				Expect(createResourceCr(metricsEndpoint.resourceName, testNamespace, metricsEndpoint.kind)).To(ExistsK8sRes(defaultWaitTimeout))
+				Expect(createResourceCr(privateNetwork.resourceName, testNamespace, privateNetwork.kind)).To(ExistsK8sRes(defaultWaitTimeout))
+				Expect(createResourceCr(resourceRequest.resourceName, testNamespace, resourceRequest.kind)).To(ExistsK8sRes(defaultWaitTimeout))
+				Expect(createResourceCr(storage.resourceName, testNamespace, storage.kind)).To(ExistsK8sRes(defaultWaitTimeout))
+			})
+		})
+		Context("The Application Framework", func() {
+			It("approves the resources", func() {
 				approveResource(metricsEndpoint)
 				approveResource(privateNetwork)
 				approveResource(resourceRequest)
 				approveResource(storage)
-
 			})
 			It("checks if the stateful set is present", func() {
-
 				Eventually(func() error {
-					_, err = kubelib.GetKubeAPI().AppsV1().StatefulSets(consulTestNamespace).Get(context.TODO(), "example-consul", metav1.GetOptions{})
+					_, err = kubelib.GetKubeAPI().AppsV1().StatefulSets(testNamespace).Get(context.TODO(), consulStatefulSetName, metav1.GetOptions{})
 					return err
 				}, 35*time.Second, time.Second*1).Should(BeNil())
 			})
-			It("updates the stateful set to contain initContainers", func() {
-				var consulStatefulSet *appsv1.StatefulSet
-				consulStatefulSet, err = kubelib.GetKubeAPI().AppsV1().StatefulSets(consulTestNamespace).Get(context.TODO(), "example-consul", metav1.GetOptions{})
+			It("updates the stateful set to contain initContainer values", func() {
 
-				consulStatefulSet.Spec.Template.Spec.InitContainers = []corev1.Container{corev1.Container{
-					Name:  "appfw-private-network-routing",
-					Image: "registry.dac.nokia.com/public/calico/node:v3.18.2",
-					Args:  []string{initcontainerArgs},
-				}}
+				consulStatefulSet, err = kubelib.GetKubeAPI().AppsV1().StatefulSets(testNamespace).Get(context.TODO(), consulStatefulSetName, metav1.GetOptions{})
 
-				kubelib.GetKubeAPI().AppsV1().StatefulSets(consulTestNamespace).Update(context.TODO(), consulStatefulSet, metav1.UpdateOptions{})
+				consulStatefulSet.Spec.Template.Spec.InitContainers = initContainers
+
+				_, err = kubelib.GetKubeAPI().AppsV1().StatefulSets(testNamespace).Update(context.TODO(), consulStatefulSet, metav1.UpdateOptions{})
+				Expect(err).NotTo(HaveOccurred())
 			})
-			It("creates a dummy pod with consul name and sets it to running", func() {
+			It("creates a dummy pod for the Consul Application and sets it to running", func() {
 				fakePodCr := getStaticPodCr()
 				err = k8sClient.Create(context.TODO(), fakePodCr)
 				Expect(err).NotTo(HaveOccurred())
 
 				fakePodCr.Status = corev1.PodStatus{
 					Phase:             corev1.PodRunning,
-					ContainerStatuses: []corev1.ContainerStatus{corev1.ContainerStatus{Ready: true}},
+					ContainerStatuses: []corev1.ContainerStatus{{Ready: true}},
 				}
 
 				err = k8sClient.Status().Update(context.TODO(), fakePodCr)
 				Expect(err).NotTo(HaveOccurred())
 
-				consulCrResourceId := K8sResourceId{
-					Name:      consulAppName,
-					Namespace: consulTestNamespace,
-					ParamPath: []string{"status", "appStatus"},
-					Gvk: schema.GroupVersionKind{
-						Group:   gvkAppGroup,
-						Version: gvkVersion,
-						Kind:    gvkConsulKind,
-					},
-				}
-				Expect(consulCrResourceId).To(EqualsK8sRes("RUNNING", 10*time.Second))
+				Expect(consulAppStatusResourceId).To(EqualsK8sRes("RUNNING", 10*time.Second))
 			})
-			It("updates stateful set and checks if the app reported data shows the fixed pod Ip", func() {
+			It("checks if the app reported data shows the fixed pod Ip", func() {
 				consulCrResourceId := K8sResourceId{
 					Name:      consulAppName,
-					Namespace: consulTestNamespace,
+					Namespace: testNamespace,
 					ParamPath: []string{"status", "appReportedData", "privateNetworkIpAddresses", "statefulsets/example-consul"},
-					Gvk: schema.GroupVersionKind{
-						Group:   gvkAppGroup,
-						Version: gvkVersion,
-						Kind:    gvkConsulKind,
-					},
+					Gvk:       consulGvk,
 				}
-				Eventually(consulCrResourceId, 10*time.Second, time.Second*1).Should(EqualsK8sRes("10.32.1.2"))
+				Eventually(consulCrResourceId, 10*time.Second, time.Second*1).Should(EqualsK8sRes(appPodFixIp))
+			})
+			It("checks if the ports given in the CR are present in the service", func() {
+				var service *corev1.Service
+				service, err = kubelib.GetKubeAPI().CoreV1().Services(testNamespace).Get(context.TODO(), "example-consul-service", metav1.GetOptions{})
+
+				missingPorts := findMissingPorts(service.Spec.Ports)
+
+				Expect(missingPorts).To(BeEmpty())
 			})
 		})
-		Describe("License Expired Case", func() {
+	})
+
+	Describe("License Expired Case", func() {
+		Context("The Application Framework", func() {
 			It("creates the LicenceExpiration resource in the namespace of the application", func() {
 
 				var licenseExpiredCr = unstructured.Unstructured{
@@ -181,110 +139,90 @@ var _ = Describe("deploy/undeploy case", func() {
 					},
 				}
 
-				licenseExpiredGvr := schema.GroupVersionResource{Group: gvkResourceGroup, Version: gvkVersion, Resource: "licenceexpireds"}
+				licenseExpiredGvr := schema.GroupVersionResource{Group: opsGroup, Version: groupResourceVersion, Resource: "licenceexpireds"}
 
-				_, err = ctk8sclient.GetDynamicK8sClient(ctenv.Cfg).Resource(licenseExpiredGvr).Namespace(consulTestNamespace).Create(context.TODO(), &licenseExpiredCr, metav1.CreateOptions{})
+				_, err = ctk8sclient.GetDynamicK8sClient(ctenv.Cfg).Resource(licenseExpiredGvr).Namespace(testNamespace).Create(context.TODO(), &licenseExpiredCr, metav1.CreateOptions{})
 				Expect(err).NotTo(HaveOccurred())
 			})
+		})
+		Context("The Consul Operator", func() {
 			It("stops the consul service", func() {
-				//_, err = kubelib.GetKubeAPI().CoreV1().Services(consulTestNamespace).Get(context.TODO(), "example-consul-service", metav1.GetOptions{})
+				//_, err = kubelib.GetKubeAPI().CoreV1().Services(testNamespace).Get(context.TODO(), "example-consul-service", metav1.GetOptions{})
 
 				//Eventually(k8serrors.IsNotFound(err), 10*time.Second, time.Second*1).Should(BeTrue())
 			})
-			It("changes the appStatus to Frozen in the app spec CRs", func() {
-				consulCrResourceId := K8sResourceId{
-					Name:      consulAppName,
-					Namespace: consulTestNamespace,
-					ParamPath: []string{"status", "appStatus"},
-					Gvk: schema.GroupVersionKind{
-						Group:   gvkAppGroup,
-						Version: gvkVersion,
-						Kind:    gvkConsulKind,
-					},
-				}
-				Expect(consulCrResourceId).To(EqualsK8sRes("FROZEN", 10*time.Second))
-			})
-			It("but keeps the stateful set intact", func() {
-				_, err = kubelib.GetKubeAPI().AppsV1().StatefulSets(consulTestNamespace).Get(context.TODO(), "example-consul", metav1.GetOptions{})
-				Expect(err).NotTo(HaveOccurred())
-			})
-		})
-		Describe("License expiration lifted case", func() {
-			It("The LicenceExpiration resource is removed from the namespace of the application", func() {
-				licenseExpiredGvr := schema.GroupVersionResource{Group: gvkResourceGroup, Version: gvkVersion, Resource: "licenceexpireds"}
+			It("changes the appStatus to Frozen", func() {
 
-				err = ctk8sclient.GetDynamicK8sClient(ctenv.Cfg).Resource(licenseExpiredGvr).Namespace(consulTestNamespace).Delete(context.TODO(), "consul-op-license-expired", metav1.DeleteOptions{})
+				Expect(consulAppStatusResourceId).To(EqualsK8sRes("FROZEN", 10*time.Second))
+			})
+			It("But keeps the stateful set intact", func() {
+				_, err = kubelib.GetKubeAPI().AppsV1().StatefulSets(testNamespace).Get(context.TODO(), "example-consul", metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
 			})
-			It("the appStatus is changed back to running", func() {
-				consulCrResourceId := K8sResourceId{
-					Name:      consulAppName,
-					Namespace: consulTestNamespace,
-					ParamPath: []string{"status", "appStatus"},
-					Gvk: schema.GroupVersionKind{
-						Group:   gvkAppGroup,
-						Version: gvkVersion,
-						Kind:    gvkConsulKind,
-					},
-				}
-				Expect(consulCrResourceId).To(EqualsK8sRes("RUNNING", 35*time.Second))
+		})
+	})
+
+	Describe("License activated case", func() {
+		Context("The Application Framework", func() {
+			It("Removes the LicenceExpiration resource from the namespace of the application", func() {
+				licenseExpiredGvr := schema.GroupVersionResource{Group: opsGroup, Version: groupResourceVersion, Resource: "licenceexpireds"}
+
+				err = ctk8sclient.GetDynamicK8sClient(ctenv.Cfg).Resource(licenseExpiredGvr).Namespace(testNamespace).Delete(context.TODO(), "consul-op-license-expired", metav1.DeleteOptions{})
+				Expect(err).NotTo(HaveOccurred())
 			})
 		})
-		Describe("app status monitoring case", func() {
-			It("The pod status is set to failed", func() {
+		Context("The Consul Operator", func() {
+			It("Sets the appStatus is to running", func() {
+				Expect(consulAppStatusResourceId).To(EqualsK8sRes("RUNNING", 35*time.Second))
+			})
+		})
+	})
+
+	Describe("Application Pod failure case", func() {
+		Context("The Application framework", func() {
+			It("sets the pod status to failed", func() {
 				fakePodCr := getStaticPodCr()
 
 				fakePodCr.Status = corev1.PodStatus{
 					Phase:             corev1.PodFailed,
-					ContainerStatuses: []corev1.ContainerStatus{corev1.ContainerStatus{Ready: false}},
+					ContainerStatuses: []corev1.ContainerStatus{{Ready: false}},
 				}
 
 				err = k8sClient.Status().Update(context.TODO(), fakePodCr)
 				Expect(err).NotTo(HaveOccurred())
 			})
-			It("the consul application detects the stopped pod and removes its running state", func() {
-				consulCrResourceId := K8sResourceId{
-					Name:      consulAppName,
-					Namespace: consulTestNamespace,
-					ParamPath: []string{"status", "appStatus"},
-					Gvk: schema.GroupVersionKind{
-						Group:   gvkAppGroup,
-						Version: gvkVersion,
-						Kind:    gvkConsulKind,
-					},
-				}
-				Expect(consulCrResourceId).To(EqualsK8sRes("NOT_RUNNING", 10*time.Second))
+		})
+		Context("The Consul Application", func() {
+			It("detects the stopped pod and removes its running state", func() {
+				Expect(consulAppStatusResourceId).To(EqualsK8sRes("NOT_RUNNING", 10*time.Second))
 			})
-			It("Once the pot status is set back to running, the application resolved its running state as well", func() {
+		})
+	})
+
+	Describe("The Application pod resumes operation", func() {
+		Context("The Application Framework", func() {
+			It("Resumes pod status back to running", func() {
 				fakePodCr := getStaticPodCr()
 
 				fakePodCr.Status = corev1.PodStatus{
 					Phase:             corev1.PodRunning,
-					ContainerStatuses: []corev1.ContainerStatus{corev1.ContainerStatus{Ready: true}},
+					ContainerStatuses: []corev1.ContainerStatus{{Ready: true}},
 				}
 
 				err = k8sClient.Status().Update(context.TODO(), fakePodCr)
 				Expect(err).NotTo(HaveOccurred())
-
-				consulCrResourceId := K8sResourceId{
-					Name:      consulAppName,
-					Namespace: consulTestNamespace,
-					ParamPath: []string{"status", "appStatus"},
-					Gvk: schema.GroupVersionKind{
-						Group:   gvkAppGroup,
-						Version: gvkVersion,
-						Kind:    gvkConsulKind,
-					},
-				}
-				Expect(consulCrResourceId).To(EqualsK8sRes("RUNNING", 10*time.Second))
 			})
-
 		})
-		Describe("App reported data case", func() {
-
+		Context("The Consul operator", func() {
+			It("Resumes it status to running", func() {
+				Expect(consulAppStatusResourceId).To(EqualsK8sRes("RUNNING", 10*time.Second))
+			})
 		})
-		Describe("undeploy case", func() {
-			It("undeploys the operator", func() {
+	})
+
+	Describe("Consul Operator undeploy case", func() {
+		Context("The Application Framework", func() {
+			It("Deletes the operator CR and application pod", func() {
 				err = k8sClient.Delete(context.TODO(), consulCrInstance)
 				Expect(err).NotTo(HaveOccurred())
 
@@ -295,25 +233,22 @@ var _ = Describe("deploy/undeploy case", func() {
 			})
 			It("removes the finalizer from the app CR and let kubernetes delete the app CR", func() {
 				Eventually(func() error {
-					err = k8sClient.Get(context.TODO(), types.NamespacedName{Namespace: consulTestNamespace, Name: consulAppName}, consulCrInstance)
+					err = k8sClient.Get(context.TODO(), types.NamespacedName{Namespace: testNamespace, Name: consulAppName}, consulCrInstance)
 					return err
-				}, 10*time.Second, time.Second*1).Should(HaveOccurred())
+				}, defaultWaitTimeout, time.Second*1).Should(HaveOccurred())
 			})
 			It("checks if the Stateful set and all resources are removed", func() {
-				_, err = kubelib.GetKubeAPI().AppsV1().StatefulSets(consulTestNamespace).Get(context.TODO(), "example-consul", metav1.GetOptions{})
+				_, err = kubelib.GetKubeAPI().AppsV1().StatefulSets(testNamespace).Get(context.TODO(), "example-consul", metav1.GetOptions{})
 
-				Eventually(k8serrors.IsNotFound(err), 10*time.Second, time.Second*1).Should(BeTrue())
+				Eventually(k8serrors.IsNotFound(err), defaultWaitTimeout, time.Second*1).Should(BeTrue())
 
 				checkIfResourceDoesNotExist(metricsEndpoint.resourceName, metricsEndpoint.kind)
 				checkIfResourceDoesNotExist(privateNetwork.resourceName, privateNetwork.kind)
 				checkIfResourceDoesNotExist(resourceRequest.resourceName, resourceRequest.kind)
 				checkIfResourceDoesNotExist(storage.resourceName, storage.kind)
-
 			})
-
 		})
 	})
-
 })
 
 func createNameSpace(namespace string) {
@@ -332,14 +267,14 @@ func approveResource(resourceDef resource) {
 	var resourceSpecCr *unstructured.Unstructured
 	var err error
 
-	gvr, _, err = GetGvrAndAPIResources(schema.GroupVersionKind{Group: gvkResourceGroup, Version: gvkVersion, Kind: resourceDef.kind})
+	gvr, _, err = GetGvrAndAPIResources(schema.GroupVersionKind{Group: opsGroup, Version: groupResourceVersion, Kind: resourceDef.kind})
 	Expect(err).NotTo(HaveOccurred())
 
-	resourceSpecCr, err = ctk8sclient.GetDynamicK8sClient(ctenv.Cfg).Resource(gvr).Namespace(consulTestNamespace).Get(context.TODO(), resourceDef.resourceName, metav1.GetOptions{})
+	resourceSpecCr, err = ctk8sclient.GetDynamicK8sClient(ctenv.Cfg).Resource(gvr).Namespace(testNamespace).Get(context.TODO(), resourceDef.resourceName, metav1.GetOptions{})
 	Expect(err).NotTo(HaveOccurred())
 	resourceSpecCr.Object["status"] = resourceDef.statusContents
 
-	resourceSpecCr, err = ctk8sclient.GetDynamicK8sClient(ctenv.Cfg).Resource(gvr).Namespace(consulTestNamespace).UpdateStatus(context.TODO(), resourceSpecCr, metav1.UpdateOptions{})
+	resourceSpecCr, err = ctk8sclient.GetDynamicK8sClient(ctenv.Cfg).Resource(gvr).Namespace(testNamespace).UpdateStatus(context.TODO(), resourceSpecCr, metav1.UpdateOptions{})
 	Expect(err).NotTo(HaveOccurred())
 
 }
@@ -348,7 +283,7 @@ func createResourceCr(name string, namespace string, kind string) K8sResourceId 
 	return K8sResourceId{
 		Name:      name,
 		Namespace: namespace,
-		Gvk:       schema.GroupVersionKind{Group: gvkResourceGroup, Version: gvkVersion, Kind: kind},
+		Gvk:       schema.GroupVersionKind{Group: opsGroup, Version: groupResourceVersion, Kind: kind},
 	}
 }
 
@@ -356,11 +291,43 @@ func checkIfResourceDoesNotExist(resourceCrName string, kind string) {
 	var gvr schema.GroupVersionResource
 	var err error
 
-	gvr, _, err = GetGvrAndAPIResources(schema.GroupVersionKind{Group: gvkResourceGroup, Version: gvkVersion, Kind: kind})
+	gvr, _, err = GetGvrAndAPIResources(schema.GroupVersionKind{Group: opsGroup, Version: groupResourceVersion, Kind: kind})
 	Expect(err).NotTo(HaveOccurred())
 
-	_, err = ctk8sclient.GetDynamicK8sClient(ctenv.Cfg).Resource(gvr).Namespace(consulTestNamespace).Get(context.TODO(), resourceCrName, metav1.GetOptions{})
+	_, err = ctk8sclient.GetDynamicK8sClient(ctenv.Cfg).Resource(gvr).Namespace(testNamespace).Get(context.TODO(), resourceCrName, metav1.GetOptions{})
 	Expect(k8serrors.IsNotFound(err)).To(BeTrue())
+}
+
+func findMissingPorts(portsActual []corev1.ServicePort) []int32 {
+	var portMap map[int32]bool
+	portMap = makePortMap()
+
+	for _, portDefinition := range portsActual {
+		actualPort := portDefinition.Port
+
+		if _, ok := portMap[actualPort]; ok {
+			portMap[actualPort] = true
+		}
+	}
+
+	var missingPorts []int32
+	for port, found := range portMap {
+		if !found {
+			missingPorts = append(missingPorts, port)
+		}
+	}
+
+	return missingPorts
+}
+
+func makePortMap() map[int32]bool {
+	var elementMap map[int32]bool
+	elementMap = make(map[int32]bool)
+
+	for _, port := range expectedPorts {
+		elementMap[port] = false
+	}
+	return elementMap
 }
 
 func deleteNameSpace(namespace string) {
@@ -379,6 +346,6 @@ func deleteNameSpace(namespace string) {
 			return err
 		}
 		return nil
-	}, operatorDefaultWaitTimeout).Should(HaveOccurred())
+	}, defaultWaitTimeout).Should(HaveOccurred())
 
 }
