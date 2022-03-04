@@ -23,21 +23,6 @@ needed configuration and update the result of the evaluation in the CR (status/a
 This example contains a metrics collection and a storage request. The application deployment starts with the apply of
 these requests and the deployment flow continuous only when the resources are granted for the application.
 
-#### Ingress for the application Components
-This project has an example how the application components which have HTTP interface can be reachable from outside,
-using a domain name. The domain name should come from the app spec CR, defined by the customer. The customer needs to
-register the domain name in his/her own DNS server which should point to the ingress controller of the application
-framework.
-Applications should use the domain name(s) given in the app spec CR and create [Ingress](https://kubernetes.io/docs/concepts/services-networking/ingress/)
-resources, like this [example](deployment/app-deployment/templates/consul-ingress.yaml)
-To test if you can reach the service of the application via the ingress controller, you can use a PC which can access the
-IP of the ingress controller, and execute the follwing command:
-```
-curl --noproxy metrics.consul.appdomain.com http://10.10.38.3/v1/agent/metrics -H 'Host: metrics.consul.appdomain.com'
-```
-In this example the 10.10.38.3 address is the IP of the ingress controller. The entry is not registred in the DNS server or
-in the hosts file of the machine so it is defined as an additional Host header.
-
 #### CR based deployment templating
 An application operator has at least one CR (currently exactly one supported by the App FW) which contains the basic
 configuration of the application and serves as a trigger for the deployment/undeplyoment.
