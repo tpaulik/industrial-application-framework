@@ -70,7 +70,7 @@ SHELL = /usr/bin/env bash -o pipefail
 .PHONY: componenttest
 componenttest:
 	mkdir -p ${ENVTESTDIR}
-	wget ${KUBERNETES_URL}/${EVNTEST_KUBEAPISERVER}/bin/linux/amd64/kube-apiserver -P ${ENVTESTDIR} && chmod +x ${ENVTESTDIR}/kube-apiserver
+	wget ${KUBERNETES_URL}/${EVNTEST_KUBEAPISERVER}/bin/linux/amd64/kube-apiserver -nv -P ${ENVTESTDIR} && chmod +x ${ENVTESTDIR}/kube-apiserver
 	curl ${GOOGLE_URL}/${ENVTEST_ETCD}/etcd-${ENVTEST_ETCD}-linux-amd64.tar.gz | tar -xvz etcd-${ENVTEST_ETCD}-linux-amd64/etcd && mv etcd-${ENVTEST_ETCD}-linux-amd64/etcd ${ENVTESTDIR}/ && rmdir etcd-${ENVTEST_ETCD}-linux-amd64
 	go test ${PWD}/componenttest -race -ginkgo.v
 all: build

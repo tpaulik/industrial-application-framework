@@ -16,7 +16,7 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.16
-    - name: Download component test binaries
+    - name: Run component test for consul-operator
       run: make componenttest
       working-directory: ./consul-operator
     - name: Build consul-operator
