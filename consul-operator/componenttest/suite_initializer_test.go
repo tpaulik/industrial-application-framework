@@ -1,9 +1,12 @@
+// Copyright 2020 Nokia
+// Licensed under the BSD 3-Clause License.
+// SPDX-License-Identifier: BSD-3-Clause
+
 package componenttest
 
 import (
 	ctenv "github.com/nokia/industrial-application-framework/componenttest-lib/pkg/env"
 	appdacnokiacomv1alpha1 "github.com/nokia/industrial-application-framework/consul-operator/api/v1alpha1"
-	"github.com/nokia/industrial-application-framework/consul-operator/componenttest/mock"
 	"github.com/nokia/industrial-application-framework/consul-operator/controllers"
 	"github.com/nokia/industrial-application-framework/consul-operator/libs/kubelib"
 	"github.com/nokia/industrial-application-framework/consul-operator/pkg/k8sdynamic"
@@ -72,7 +75,6 @@ func CustomTearUp() {
 }
 
 func CustomTearDown() {
-	mock.StopMockOperators()
 	ctenv.ResetEtcd()
 }
 

@@ -1,3 +1,7 @@
+// Copyright 2020 Nokia
+// Licensed under the BSD 3-Clause License.
+// SPDX-License-Identifier: BSD-3-Clause
+
 package componenttest
 
 import (
@@ -53,14 +57,14 @@ var _ = Describe("Consul Operator Component Tests", func() {
 				os.Setenv("RESREQ_DIR", "../deployment/resource-reqs-generated")
 				os.Setenv("KUBECONFIG", ctenv.LocalCfg.KubeConfig)
 
-				log.Info("Test Deploy", "Kubeconfig file", ctenv.LocalCfg.KubeConfig)
+				log.Info("Kubernetes Temporary Location", "Kubeconfig file", ctenv.LocalCfg.KubeConfig)
 
 				deploymentAbsPath := getTestBinaryPath("/../deployment")
 				path := os.Getenv("PATH")
 				os.Setenv("PATH", path+":"+deploymentAbsPath)
 			})
 		})
-		Context("The Consul Operator", func() {
+		Context("The Application Framework", func() {
 			It("executes consul CR", func() {
 
 				consulCrInstance = getConsulCrInstance()
@@ -68,6 +72,8 @@ var _ = Describe("Consul Operator Component Tests", func() {
 
 				Expect(err).NotTo(HaveOccurred())
 			})
+		})
+		Context("The Consul Operator", func() {
 			It("executes the resource CRs", func() {
 
 				Expect(createResourceCr(metricsEndpoint.resourceName, testNamespace, metricsEndpoint.kind)).To(ExistsK8sRes(consulTestDefaultTimeout))
