@@ -94,7 +94,7 @@ func ApplyPnaResourceRequests(namespace string) ([]k8sdynamic.ResourceDescriptor
 func WaitUntilResourcesGranted(resourceList []k8sdynamic.ResourceDescriptor, timeout time.Duration) error {
 	logger := log.WithName("WaitUntilResourcesGranted")
 
-	var stopperList = make(map[string](chan struct{}))
+	var stopperList = sync.Map{}
 	var waitGroup sync.WaitGroup
 	var results []*bool
 
@@ -103,6 +103,7 @@ func WaitUntilResourcesGranted(resourceList []k8sdynamic.ResourceDescriptor, tim
 		waitGroup.Add(1)
 		var result bool
 		results = append(results, &result)
+		stopperList.Store(resource.Name, stopper)
 		startWatchResourceRequest(
 			resource.Name,
 			resource.Namespace,
@@ -113,15 +114,15 @@ func WaitUntilResourcesGranted(resourceList []k8sdynamic.ResourceDescriptor, tim
 			&waitGroup,
 			&result,
 		)
-		stopperList[resource.Name] = stopper
 	}
 
 	if waitTimeout(&waitGroup, timeout) {
 		var timedOutResources []string
-		for resName, stopper := range stopperList {
-			timedOutResources = append(timedOutResources, resName)
-			close(stopper)
-		}
+		stopperList.Range(func(resName, stopper interface{}) bool {
+			timedOutResources = append(timedOutResources, resName.(string))
+			close(stopper.(chan struct{}))
+			return true
+		})
 		return errors.New(fmt.Sprintf("waiting for the approval of the following platform resource requests timed out: %v", timedOutResources))
 	} else {
 		for _, result := range results {
@@ -153,7 +154,7 @@ func waitTimeout(wg *sync.WaitGroup, timeout time.Duration) bool {
 	}
 }
 
-func startWatchResourceRequest(name string, namespace string, resourceVersion string, gvr schema.GroupVersionResource, stopper chan struct{}, stopperList *map[string]chan struct{}, waitGroup *sync.WaitGroup, result *bool) {
+func startWatchResourceRequest(name string, namespace string, resourceVersion string, gvr schema.GroupVersionResource, stopper chan struct{}, stopperList *sync.Map, waitGroup *sync.WaitGroup, result *bool) {
 	logger := log.WithName("StartWatchResourceRequest").WithValues("resource", name)
 
 	logger.Info("Watching resource")
@@ -185,7 +186,7 @@ func startWatchResourceRequest(name string, namespace string, resourceVersion st
 					}
 					waitGroup.Done()
 					close(stopper)
-					delete(*stopperList, name)
+					stopperList.Delete(name)
 				}
 			},
 			AddFunc: func(obj interface{}) {
@@ -195,7 +196,7 @@ func startWatchResourceRequest(name string, namespace string, resourceVersion st
 					*result = true
 					waitGroup.Done()
 					close(stopper)
-					delete(*stopperList, name)
+					stopperList.Delete(name)
 				}
 			},
 		},
