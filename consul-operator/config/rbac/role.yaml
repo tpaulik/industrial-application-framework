@@ -1,14 +1,11 @@
-# Copyright 2021 Nokia
-# Licensed under the BSD 3-Clause License.
-# SPDX-License-Identifier: BSD-3-Clause
-
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
+kind: Role
 metadata:
   creationTimestamp: null
   name: manager-role
+  namespace: app-ns
 rules:
 - apiGroups:
   - ""
@@ -16,6 +13,7 @@ rules:
   - configmaps
   - endpoints
   - events
+  - persistentvolumeclaims
   - pods
   - secrets
   - services
@@ -54,11 +52,47 @@ rules:
   - patch
   - update
 - apiGroups:
-  - extensions
+  - apps
+  resources:
+  - daemonsets
+  - deployments
+  - replicasets
+  - statefulsets
+  verbs:
+  - '*'
+- apiGroups:
+  - apps
+  resourceNames:
+  - consul-operator
+  resources:
+  - deployments/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - coordination.k8s.io
+  resources:
+  - leases
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - extensions;networking.k8s.io
   resources:
   - ingresses
   verbs:
   - '*'
+- apiGroups:
+  - monitoring.coreos.com
+  resources:
+  - servicemonitors
+  verbs:
+  - create
+  - get
 - apiGroups:
   - ops.dac.nokia.com
   resources:
