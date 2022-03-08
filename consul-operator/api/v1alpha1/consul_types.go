@@ -39,6 +39,7 @@ type ConsulSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make generate" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
+
 	ReplicaCount int   `json:"replicaCount"`
 	Ports        Ports `json:"ports"`
 	// Deprecated
