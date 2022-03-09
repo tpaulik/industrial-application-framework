@@ -7,4 +7,4 @@ kind: Backup
 metadata:
   name: backup-consul
 spec:
-  bucketSize: 64Gi
+  bucketSize: 1Gi
