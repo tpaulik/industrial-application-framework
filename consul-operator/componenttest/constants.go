@@ -5,12 +5,13 @@
 package componenttest
 
 import (
+	"time"
+
 	. "github.com/nokia/industrial-application-framework/componenttest-lib/pkg/matcher"
 	appdacnokiacomv1alpha1 "github.com/nokia/industrial-application-framework/consul-operator/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"time"
 )
 
 const (
@@ -19,7 +20,7 @@ const (
 	consulStatefulSetName = "example-consul"
 	consulServiceName     = "example-consul-service"
 
-	appPodFixIp = "10.32.1.2"
+	appPodFixIp = "192.168.0.2"
 
 	initcontainerArgs = "iptables -t nat -A POSTROUTING -o appfw-appnet13 -j SNAT --to-source " + appPodFixIp + " " +
 		"&& ip a && mkdir -p /etc/iproute2 && touch /etc/iproute2/rt_tables && echo 200 custom >> /etc/iproute2/rt_tables && ip rule add from " + appPodFixIp + "/32 lookup custom && ip route add default via 169.254.151.193 dev appfw-appnet13 table custom " +
@@ -117,7 +118,7 @@ var ports = appdacnokiacomv1alpha1.Ports{
 	Server:    server,
 }
 
-var networks = []appdacnokiacomv1alpha1.Network{{ApnUUID: apnUUID, AdditionalRoutes: []string{"127.0.1.1/28", "127.0.1.2/28"}}}
+var networks = []appdacnokiacomv1alpha1.Network{{ApnUUID: apnUUID, AdditionalRoutes: []string{"192.168.1.0/28", "192.168.1.16/28"}}}
 
 func getConsulCrInstance() *appdacnokiacomv1alpha1.Consul {
 	consulCrInstance := appdacnokiacomv1alpha1.Consul{
@@ -135,7 +136,7 @@ func getConsulCrInstance() *appdacnokiacomv1alpha1.Consul {
 			MetricsDomainName: metricsDomain,
 			PrivateNetworkAccess: &appdacnokiacomv1alpha1.PrivateNetworkAccess{
 				Networks:             networks,
-				CustomerNetwork:      "127.0.0.0/28",
+				CustomerNetwork:      "192.168.0.0/28",
 				NetworkInterfaceName: networkInterfaceName,
 				AppPodFixIp: &appdacnokiacomv1alpha1.AppPodFixIp{
 					Db: appPodFixIp,

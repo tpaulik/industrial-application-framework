@@ -6,6 +6,7 @@ package componenttest
 
 import (
 	"context"
+
 	ctenv "github.com/nokia/industrial-application-framework/componenttest-lib/pkg/env"
 	ctk8sclient "github.com/nokia/industrial-application-framework/componenttest-lib/pkg/k8sclient"
 	. "github.com/nokia/industrial-application-framework/componenttest-lib/pkg/matcher"
@@ -17,14 +18,15 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 
+	"os"
+	"time"
+
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
-	"os"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	"time"
 )
 
 var log = logf.Log.WithName("consulTests")
@@ -159,12 +161,21 @@ var _ = Describe("Consul Operator Component Tests", func() {
 		})
 		Context("The Consul Operator", func() {
 			It("changes the appStatus to Frozen", func() {
-
 				Expect(consulAppStatusResourceId).To(EqualsK8sRes("FROZEN", consulTestDefaultTimeout))
 			})
 			It("But keeps the stateful set intact", func() {
 				_, err = kubelib.GetKubeAPI().AppsV1().StatefulSets(testNamespace).Get(context.TODO(), consulStatefulSetName, metav1.GetOptions{})
 				Expect(err).NotTo(HaveOccurred())
+			})
+			It("deletes the application service", func() {
+				Eventually(func() bool {
+					svc := &corev1.Service{}
+					err := k8sClient.Get(context.TODO(), client.ObjectKey{
+								Name: consulServiceName,
+								Namespace: testNamespace,
+								}, svc)
+					return k8serrors.IsNotFound(err)
+				}, consulTestDefaultTimeout).Should(BeTrue())
 			})
 		})
 	})
@@ -181,6 +192,15 @@ var _ = Describe("Consul Operator Component Tests", func() {
 		Context("The Consul Operator", func() {
 			It("Sets the appStatus is to running", func() {
 				Expect(consulAppStatusResourceId).To(EqualsK8sRes("RUNNING", consulTestDefaultTimeout))
+			})
+			It("creates the application service", func() {
+				Eventually(func() error {
+					svc := &corev1.Service{}
+					return k8sClient.Get(context.TODO(), client.ObjectKey{
+									Name: consulServiceName,
+									Namespace: testNamespace,
+								}, svc)
+				}, consulTestDefaultTimeout).Should(BeNil())
 			})
 		})
 	})
