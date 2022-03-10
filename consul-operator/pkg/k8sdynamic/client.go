@@ -9,13 +9,18 @@ import (
 	"k8s.io/client-go/rest"
 )
 
+var Config *rest.Config
+
 func GetDynamicK8sClient() dynamic.Interface {
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		panic(err.Error())
+	if Config == nil {
+		var err error
+		Config, err = rest.InClusterConfig()
+		if err != nil {
+			panic(err.Error())
+		}
 	}
 
-	clientset, err := dynamic.NewForConfig(config)
+	clientset, err := dynamic.NewForConfig(Config)
 	if err != nil {
 		panic(err.Error())
 	}

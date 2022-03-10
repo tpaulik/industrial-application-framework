@@ -1,0 +1,124 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.6.1
+  creationTimestamp: null
+  name: resourcerequests.ops.dac.nokia.com
+spec:
+  group: ops.dac.nokia.com
+  names:
+    kind: Resourcerequest
+    listKind: ResourcerequestList
+    plural: resourcerequests
+    singular: resourcerequest
+  scope: Namespaced
+  versions:
+    - name: v1alpha1
+      schema:
+        openAPIV3Schema:
+          description: Resourcerequest is the Schema for the resourcerequests API
+          properties:
+            apiVersion:
+              description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+              type: string
+            kind:
+              description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+              type: string
+            metadata:
+              type: object
+            spec:
+              description: ResourcerequestSpec defines the desired state of Resourcerequest
+              properties:
+                requestedResources:
+                  properties:
+                    cpu:
+                      anyOf:
+                        - type: integer
+                        - type: string
+                      pattern: ^(0\.[0-9]+|[1-9][0-9]*m?)$
+                      x-kubernetes-int-or-string: true
+                    memory:
+                      anyOf:
+                        - type: integer
+                        - type: string
+                      pattern: ^([1-9][0-9]*(Ki|Mi|Gi|Ti|Pi|Ei|k|M|G|T|P|E|m|"")?)$
+                      x-kubernetes-int-or-string: true
+                    pods:
+                      anyOf:
+                        - type: integer
+                        - type: string
+                      pattern: ^([0-9]+)$
+                      x-kubernetes-int-or-string: true
+                  type: object
+              type: object
+            status:
+              description: ResourcerequestStatus defines the observed state of Resourcerequest
+              properties:
+                approvalStatus:
+                  type: string
+                approvalStatusLastUpdate:
+                  format: date-time
+                  type: string
+                assignedResources:
+                  properties:
+                    cpu:
+                      anyOf:
+                        - type: integer
+                        - type: string
+                      pattern: ^(0|0\.[0-9]+|[1-9][0-9]*m?)$
+                      x-kubernetes-int-or-string: true
+                    memory:
+                      anyOf:
+                        - type: integer
+                        - type: string
+                      pattern: ^(0|[1-9][0-9]*(Ki|Mi|Gi|Ti|Pi|Ei|k|M|G|T|P|E|m|"")?)$
+                      x-kubernetes-int-or-string: true
+                    pods:
+                      anyOf:
+                        - type: integer
+                        - type: string
+                      pattern: ^([0-9]+)$
+                      x-kubernetes-int-or-string: true
+                  type: object
+                observedGeneration:
+                  format: int64
+                  type: integer
+                pendingResources:
+                  properties:
+                    cpu:
+                      anyOf:
+                        - type: integer
+                        - type: string
+                      pattern: ^(0|0\.[0-9]+|[1-9][0-9]*m?)$
+                      x-kubernetes-int-or-string: true
+                    memory:
+                      anyOf:
+                        - type: integer
+                        - type: string
+                      pattern: ^(0|[1-9][0-9]*(Ki|Mi|Gi|Ti|Pi|Ei|k|M|G|T|P|E|m|"")?)$
+                      x-kubernetes-int-or-string: true
+                    pods:
+                      anyOf:
+                        - type: integer
+                        - type: string
+                      pattern: ^([0-9]+)$
+                      x-kubernetes-int-or-string: true
+                  type: object
+              type: object
+          type: object
+      served: true
+      storage: true
+      subresources:
+        status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
