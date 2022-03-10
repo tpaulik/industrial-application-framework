@@ -52,6 +52,7 @@ func CustomTearUp() {
 	kubelib.Config = ctenv.Cfg
 
 	k8sManager, err := ctrl.NewManager(ctenv.Cfg, ctrl.Options{
+		MetricsBindAddress: ":8383",
 		Scheme: ourScheme,
 	})
 	Expect(err).ToNot(HaveOccurred())
