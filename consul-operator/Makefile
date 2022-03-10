@@ -72,7 +72,7 @@ componenttest:
 	mkdir -p ${ENVTESTDIR}
 	wget ${KUBERNETES_URL}/${EVNTEST_KUBEAPISERVER}/bin/linux/amd64/kube-apiserver -nv -P ${ENVTESTDIR} && chmod +x ${ENVTESTDIR}/kube-apiserver
 	curl ${GOOGLE_URL}/${ENVTEST_ETCD}/etcd-${ENVTEST_ETCD}-linux-amd64.tar.gz | tar -xvz etcd-${ENVTEST_ETCD}-linux-amd64/etcd && mv etcd-${ENVTEST_ETCD}-linux-amd64/etcd ${ENVTESTDIR}/ && rmdir etcd-${ENVTEST_ETCD}-linux-amd64
-	go test ${PWD}/componenttest -ginkgo.v
+	go test ${PWD}/componenttest -ginkgo.v -race 
 all: build
 
 ##@ General
@@ -106,7 +106,7 @@ vet: ## Run go vet against code.
 	go vet ./...
 
 test: manifests generate fmt vet envtest ## Run tests.
-	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test -ginkgo.v ./... -coverprofile cover.out
+	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test -ginkgo.v -race  ./... -coverprofile cover.out
 
 ##@ Build
 
