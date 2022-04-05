@@ -13,14 +13,21 @@ import (
 
 //GetKubeAPI returns the clientset for the container running inside kubernetes.
 //The container must have the RBAC roles in place to use kubernetes api
+
+var Config *rest.Config
+
 func GetKubeAPI() *kubernetes.Clientset {
 	// creates the in-cluster config
-	config, err := rest.InClusterConfig()
-	if err != nil {
-		panic(err.Error())
+	if Config == nil {
+		var err error
+		Config, err = rest.InClusterConfig()
+		if err != nil {
+			panic(err.Error())
+		}
 	}
+
 	// creates the clientset
-	clientset, err := kubernetes.NewForConfig(config)
+	clientset, err := kubernetes.NewForConfig(Config)
 	if err != nil {
 		panic(err.Error())
 	}

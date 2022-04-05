@@ -34,7 +34,7 @@ type ConsulReconciler struct {
 //+kubebuilder:rbac:groups=app.dac.nokia.com,namespace=app-ns,resources=consuls/finalizers,verbs=update
 //+kubebuilder:rbac:groups=ops.dac.nokia.com,namespace=app-ns,resources=*,verbs=create;delete;get;list;patch;update;watch
 //+kubebuilder:rbac:groups="extensions;networking.k8s.io",namespace=app-ns,resources=ingresses,verbs=*
-//+kubebuilder:rbac:groups="",namespace=app-ns,resources=pods;services;endpoints;events;configmaps;secrets;persistentvolumeclaims,verbs=create;delete;get;list;watch;patch;update
+//+kubebuilder:rbac:groups="",namespace=app-ns,resources=pods;services;endpoints;events;configmaps;secrets,verbs=create;delete;get;list;watch;patch;update
 //+kubebuilder:rbac:groups="apps",namespace=app-ns,resources=deployments;daemonsets;replicasets;statefulsets,verbs=*
 //+kubebuilder:rbac:groups="apps",resourceNames=consul-operator,namespace=app-ns,resources=deployments/finalizers,verbs=update
 //+kubebuilder:rbac:groups="monitoring.coreos.com",namespace=app-ns,resources=servicemonitors,verbs=get;create
@@ -48,7 +48,8 @@ type ConsulReconciler struct {
 // the user.
 //
 // For more details, check Reconcile and its Result here:
-// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.9.2/pkg/reconcile
+// - https://pkg.go.dev/sigs.k8s.io/controller-etcd
+//kube-apiserverruntime@v0.9.2/pkg/reconcile
 func (r *ConsulReconciler) Reconcile(ctx context.Context, request ctrl.Request) (ctrl.Result, error) {
 	_ = logf.FromContext(ctx)
 

@@ -43,6 +43,14 @@ BUNDLE_IMG ?= $(IMAGE_TAG_BASE)-bundle:v$(VERSION)
 IMG ?= controller:latest
 # Produce CRDs that work back to Kubernetes 1.11 (no version conversion)
 CRD_OPTIONS ?= "crd:trivialVersions=true,preserveUnknownFields=false"
+
+ENVTESTDIR=${PWD}/componenttest/resources
+EVNTEST_KUBEAPISERVER=v1.22.1
+ENVTEST_ETCD=v3.5.0
+GOOGLE_URL=https://storage.googleapis.com/etcd
+KUBERNETES_URL=https://dl.k8s.io
+
+
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.21
 
@@ -59,6 +67,15 @@ endif
 SHELL = /usr/bin/env bash -o pipefail
 .SHELLFLAGS = -ec
 
+.PHONY: componenttest
+componenttest:
+	mkdir -p ${ENVTESTDIR}
+	wget ${KUBERNETES_URL}/${EVNTEST_KUBEAPISERVER}/bin/linux/amd64/kube-apiserver -nv -P ${ENVTESTDIR} && chmod +x ${ENVTESTDIR}/kube-apiserver
+	curl ${GOOGLE_URL}/${ENVTEST_ETCD}/etcd-${ENVTEST_ETCD}-linux-amd64.tar.gz | tar -xvz etcd-${ENVTEST_ETCD}-linux-amd64/etcd && mv etcd-${ENVTEST_ETCD}-linux-amd64/etcd ${ENVTESTDIR}/ && rmdir etcd-${ENVTEST_ETCD}-linux-amd64
+
+.PHONY: run_test
+run_test:
+	go test ${PWD}/componenttest -v -race -ginkgo.v 
 all: build
 
 ##@ General
@@ -92,7 +109,7 @@ vet: ## Run go vet against code.
 	go vet ./...
 
 test: manifests generate fmt vet envtest ## Run tests.
-	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test ./... -coverprofile cover.out
+	KUBEBUILDER_ASSETS="$(shell $(ENVTEST) use $(ENVTEST_K8S_VERSION) -p path)" go test -v -ginkgo.v -race  ./... -coverprofile cover.out
 
 ##@ Build
 

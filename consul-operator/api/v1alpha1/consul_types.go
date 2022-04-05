@@ -19,11 +19,11 @@ const (
 )
 
 type PrivateNetworkAccess struct {
-	ApnUUID              string      `json:"apnUUID,omitempty"`
-	Networks             []Network   `json:"networks,omitempty"`
-	CustomerNetwork      string      `json:"customerNetwork"`
-	AdditionalRoutes     []string    `json:"additionalRoutes,omitempty"`
-	NetworkInterfaceName string      `json:"networkInterfaceName,omitempty"`
+	ApnUUID              string       `json:"apnUUID,omitempty"`
+	Networks             []Network    `json:"networks,omitempty"`
+	CustomerNetwork      string       `json:"customerNetwork"`
+	AdditionalRoutes     []string     `json:"additionalRoutes,omitempty"`
+	NetworkInterfaceName string       `json:"networkInterfaceName,omitempty"`
 	AppPodFixIp          *AppPodFixIp `json:"appPodFixIp,omitempty"`
 }
 
@@ -39,8 +39,10 @@ type ConsulSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make generate" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-	ReplicaCount         int                   `json:"replicaCount"`
-	Ports                Ports                 `json:"ports"`
+
+	ReplicaCount int   `json:"replicaCount"`
+	Ports        Ports `json:"ports"`
+	// Deprecated
 	MetricsDomainName    string                `json:"metricsDomainName,omitempty"`
 	PrivateNetworkAccess *PrivateNetworkAccess `json:"privateNetworkAccess,omitempty"`
 }
