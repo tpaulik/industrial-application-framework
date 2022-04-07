@@ -1,0 +1,114 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.6.1
+  creationTimestamp: null
+  name: backups.ops.dac.nokia.com
+spec:
+  group: ops.dac.nokia.com
+  names:
+    kind: Backup
+    listKind: BackupList
+    plural: backups
+    singular: backup
+  scope: Namespaced
+  versions:
+  - name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Backup is the Schema for the backups API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: BackupSpec defines the desired state of Backup
+            properties:
+              bucketSize:
+                anyOf:
+                - type: integer
+                - type: string
+                description: Size of the requested storage as k8s resource quantity
+                pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                x-kubernetes-int-or-string: true
+            required:
+            - bucketSize
+            type: object
+          status:
+            description: Status defines the observed state of Backup
+            properties:
+              approvalStatus:
+                description: the status of approval
+                enum:
+                - Approved
+                - Rejected
+                type: string
+              approvalStatusDetails:
+                description: addition informations of the approval
+                properties:
+                  description:
+                    description: description of the approval
+                    type: string
+                  lastUpdated:
+                    description: timestamp of the last status change
+                    format: date-time
+                    type: string
+                required:
+                - lastUpdated
+                type: object
+              bucketConfiguration:
+                description: Application bucket configuration
+                properties:
+                  accessKey:
+                    description: Name of the user related to application bucket
+                    type: string
+                  bucketName:
+                    description: Name of the application related bucket
+                    type: string
+                  bucketSize:
+                    anyOf:
+                    - type: integer
+                    - type: string
+                    description: Size of the requested storage as k8s resource quantity
+                    pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                    x-kubernetes-int-or-string: true
+                  secretAccessKey:
+                    description: Password of the user related to application bucket
+                    type: string
+                required:
+                - accessKey
+                - bucketName
+                - bucketSize
+                - secretAccessKey
+                type: object
+              s3Endpoint:
+                description: Minio endpoint
+                type: string
+            required:
+            - approvalStatus
+            - approvalStatusDetails
+            type: object
+        required:
+        - spec
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []

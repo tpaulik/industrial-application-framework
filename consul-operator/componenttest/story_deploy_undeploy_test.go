@@ -82,6 +82,7 @@ var _ = Describe("Consul Operator Component Tests", func() {
 				Expect(createResourceCr(privateNetwork.resourceName, testNamespace, privateNetwork.kind)).To(ExistsK8sRes(consulTestDefaultTimeout))
 				Expect(createResourceCr(resourceRequest.resourceName, testNamespace, resourceRequest.kind)).To(ExistsK8sRes(consulTestDefaultTimeout))
 				Expect(createResourceCr(storage.resourceName, testNamespace, storage.kind)).To(ExistsK8sRes(consulTestDefaultTimeout))
+				Expect(createResourceCr(backup.resourceName, testNamespace, backup.kind)).To(ExistsK8sRes(consulTestDefaultTimeout))
 			})
 		})
 		Context("The Application Framework", func() {
@@ -90,6 +91,7 @@ var _ = Describe("Consul Operator Component Tests", func() {
 				approveResource(privateNetwork)
 				approveResource(resourceRequest)
 				approveResource(storage)
+				approveResource(backup)
 			})
 			It("checks if the stateful set is present", func() {
 				Eventually(func() error {
@@ -171,9 +173,9 @@ var _ = Describe("Consul Operator Component Tests", func() {
 				Eventually(func() bool {
 					svc := &corev1.Service{}
 					err := k8sClient.Get(context.TODO(), client.ObjectKey{
-								Name: consulServiceName,
-								Namespace: testNamespace,
-								}, svc)
+						Name:      consulServiceName,
+						Namespace: testNamespace,
+					}, svc)
 					return k8serrors.IsNotFound(err)
 				}, consulTestDefaultTimeout).Should(BeTrue())
 			})
@@ -197,9 +199,9 @@ var _ = Describe("Consul Operator Component Tests", func() {
 				Eventually(func() error {
 					svc := &corev1.Service{}
 					return k8sClient.Get(context.TODO(), client.ObjectKey{
-									Name: consulServiceName,
-									Namespace: testNamespace,
-								}, svc)
+						Name:      consulServiceName,
+						Namespace: testNamespace,
+					}, svc)
 				}, consulTestDefaultTimeout).Should(BeNil())
 			})
 		})
@@ -273,6 +275,7 @@ var _ = Describe("Consul Operator Component Tests", func() {
 				checkIfResourceDoesNotExist(privateNetwork.resourceName, privateNetwork.kind)
 				checkIfResourceDoesNotExist(resourceRequest.resourceName, resourceRequest.kind)
 				checkIfResourceDoesNotExist(storage.resourceName, storage.kind)
+				checkIfResourceDoesNotExist(backup.resourceName, backup.kind)
 			})
 		})
 	})
