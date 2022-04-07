@@ -106,6 +106,18 @@ var storage = resource{
 	},
 }
 
+var backup = resource{
+	resourceName: "backup-consul",
+	kind:         "Backup",
+	statusContents: map[string]interface{}{
+		"approvalStatus": approved,
+		"approvalStatusDetails": map[string]interface{}{
+			"description": "bucket created successfully",
+			"lastUpdated": "2022-04-07T11:31:11Z",
+		},
+	},
+}
+
 var ports = appdacnokiacomv1alpha1.Ports{
 	UiPort:    uiPort,
 	AltPort:   altPort,
