@@ -20,7 +20,6 @@ type OperatorCr interface {
 }
 
 type OperatorSpec interface {
-	GetPrivateNetworkAccess() *PrivateNetworkAccess
 }
 
 type OperatorStatus interface {
@@ -31,10 +30,4 @@ type OperatorStatus interface {
 	GetPrevSpec() OperatorSpec
 	GetPrevSpecDeepCopy() OperatorSpec
 	SetPrevSpec(spec OperatorSpec) error
-	GetAppReportedData() CommonAppReportedData
-}
-
-type CommonAppReportedData interface {
-	SetMetricsClusterIp(metricsClusterIp string)
-	SetPrivateNetworkIpAddress(privateNetworkIpAddress map[string]string)
 }

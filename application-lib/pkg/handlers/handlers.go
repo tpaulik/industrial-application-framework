@@ -7,7 +7,7 @@ package handlers
 import (
 	"context"
 	"encoding/json"
-	k8sdynamic2 "github.com/nokia/industrial-application-framework/application-lib/pkg/k8sdynamic"
+	"github.com/nokia/industrial-application-framework/application-lib/pkg/k8sdynamic"
 	"github.com/nokia/industrial-application-framework/application-lib/pkg/kubelib"
 	"github.com/nokia/industrial-application-framework/application-lib/pkg/licenceexpired"
 	"github.com/nokia/industrial-application-framework/application-lib/pkg/monitoring"
@@ -91,7 +91,7 @@ func (r *OperatorReconciler) handleDelete(instance common_types.OperatorCr, name
 	}
 
 	//Go through the app spec CR and delete all of the resources present in the AppliedResources list
-	k8sClient := k8sdynamic2.New(kubelib.GetKubeAPI())
+	k8sClient := k8sdynamic.New(kubelib.GetKubeAPI())
 	if err := k8sClient.DeleteResources(instance.GetStatus().GetAppliedResources()); err != nil {
 		logger.Error(err, "failed to delete the resources")
 	}
@@ -111,7 +111,7 @@ func (r *OperatorReconciler) handleDelete(instance common_types.OperatorCr, name
 func (r *OperatorReconciler) handleUpdate(instance common_types.OperatorCr, namespace string) (reconcile.Result, error) {
 	logger := log.WithName("handlers").WithName("handleUpdate").WithValues("namespace", namespace, "name", instance.GetObjectMeta().Name)
 	logger.Info("Called")
-	if appParametersChanged(instance) {
+	if r.Functions.CheckAppParametersChanged(instance) {
 		log.V(1).Info("Network settings updated, reloading app")
 
 		err := r.undeployAppComponentsAffectedByUpdate(namespace)
@@ -122,10 +122,10 @@ func (r *OperatorReconciler) handleUpdate(instance common_types.OperatorCr, name
 		logger.V(1).Info(r.Configuration.ApplicationName + " app undeployed")
 
 		//Removing the resources that are affected by the update
-		pna := k8sdynamic2.ResourceDescriptor{
+		pna := k8sdynamic.ResourceDescriptor{
 			Name:      r.Configuration.AppPnaName,
 			Namespace: namespace,
-			Gvr: k8sdynamic2.GroupVersionResource{
+			Gvr: k8sdynamic.GroupVersionResource{
 				Group:    "ops.dac.nokia.com",
 				Version:  "v1alpha1",
 				Resource: PNAResourceName,
@@ -181,18 +181,18 @@ func (r *OperatorReconciler) handleUpdate(instance common_types.OperatorCr, name
 	return reconcile.Result{}, nil
 }
 
-func deleteChangedResources(pna k8sdynamic2.ResourceDescriptor) error {
-	k8sClient := k8sdynamic2.New(kubelib.GetKubeAPI())
-	if err := k8sClient.DeleteResources([]k8sdynamic2.ResourceDescriptor{pna}); err != nil {
+func deleteChangedResources(pna k8sdynamic.ResourceDescriptor) error {
+	k8sClient := k8sdynamic.New(kubelib.GetKubeAPI())
+	if err := k8sClient.DeleteResources([]k8sdynamic.ResourceDescriptor{pna}); err != nil {
 		return err
 	}
 	return nil
 }
 
-func waitUntilResourcesAreReleased(pna k8sdynamic2.ResourceDescriptor) {
+func waitUntilResourcesAreReleased(pna k8sdynamic.ResourceDescriptor) {
 	logger := log.WithName("handlers").WithName("waitUntilResourcesAreReleased")
 	for {
-		_, err := k8sdynamic2.GetDynamicK8sClient().Resource(pna.Gvr.GetGvr()).Namespace(pna.Namespace).Get(context.TODO(), pna.Name, metav1.GetOptions{})
+		_, err := k8sdynamic.GetDynamicK8sClient().Resource(pna.Gvr.GetGvr()).Namespace(pna.Namespace).Get(context.TODO(), pna.Name, metav1.GetOptions{})
 		if err != nil {
 			if k8serrors.IsNotFound(err) {
 				logger.V(1).Info("PNA successfully removed")
@@ -219,14 +219,9 @@ func (r *OperatorReconciler) undeployAppComponentsAffectedByUpdate(namespace str
 	return err
 }
 
-func appParametersChanged(instance common_types.OperatorCr) bool {
-	// Comparing existing application parameters with new values in case of parameters whose value change is supported
-	return !reflect.DeepEqual(instance.GetStatus().GetPrevSpec().GetPrivateNetworkAccess(), instance.GetSpec().GetPrivateNetworkAccess())
-}
-
 func (r *OperatorReconciler) updateStatus(instance common_types.OperatorCr) error {
 	prevSpec := instance.GetStatus().GetPrevSpecDeepCopy()
-	appliedResources := make([]k8sdynamic2.ResourceDescriptor, len(instance.GetStatus().GetAppliedResources()))
+	appliedResources := make([]k8sdynamic.ResourceDescriptor, len(instance.GetStatus().GetAppliedResources()))
 	copy(appliedResources, instance.GetStatus().GetAppliedResources())
 	key := client.ObjectKey{
 		Namespace: instance.GetNamespace(),
@@ -332,7 +327,7 @@ func (r *OperatorReconciler) handleCreate(instance common_types.OperatorCr, name
 
 func GetPrivateNetworkIpAddresses(namespace, pnaName string, deploymentList []DeploymentId) map[string]string {
 	logger := log.WithName("getPrivateNetworkIpAddresses")
-	k8sClient := k8sdynamic2.GetDynamicK8sClient()
+	k8sClient := k8sdynamic.GetDynamicK8sClient()
 
 	pnaObj, err := getPna(namespace, pnaName, k8sClient)
 	if err != nil {

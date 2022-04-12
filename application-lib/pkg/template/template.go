@@ -85,7 +85,7 @@ func (t *Templater) runGoTemplate(joinSeparator string) (string, error) {
 }
 
 func (t *Templater) templateFile(workDir string, file os.FileInfo, joinSeparator string) (string, error) {
-	if strings.Contains(file.Name(), "yaml") {
+	if strings.Contains(file.Name(), "yaml") || strings.Contains(file.Name(), "yml") {
 		log.Info("templating", "file", file.Name())
 
 		template, err := templ.New(file.Name()).Delims(t.Delimiters.LeftDelimiter, t.Delimiters.RightDelimiter).ParseFiles(filepath.Join(workDir, file.Name()))

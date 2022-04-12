@@ -32,10 +32,13 @@ type TemplateConfig struct {
 func GetConfiguration(configDir string) (OperatorConfig, error) {
 	operatorConfigYaml := configDir + "/" + operatorConfigFilename
 
-	var err error
-	data, err := os.ReadFile(operatorConfigYaml)
-
 	config := OperatorConfig{}
+	var err error = nil
+
+	data, err := os.ReadFile(operatorConfigYaml)
+	if err != nil {
+		return config, err
+	}
 
 	err = yaml.Unmarshal([]byte(data), &config)
 	return config, err

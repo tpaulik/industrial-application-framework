@@ -161,9 +161,8 @@ func (m *Monitor) GetApplicationStatus() common_types.AppStatus {
 				return common_types.AppStatusNotRunning
 			}
 		}
-		return common_types.AppStatusRunning
 	}
-	return common_types.AppStatusNotRunning
+	return common_types.AppStatusRunning
 }
 
 func (m *Monitor) watchInformer(eventHandler cache.ResourceEventHandler, stopper chan struct{}) {
