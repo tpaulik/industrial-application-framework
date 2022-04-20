@@ -6,7 +6,7 @@ package monitoring
 
 import (
 	"context"
-	kubelib2 "github.com/nokia/industrial-application-framework/application-lib/pkg/kubelib"
+	"github.com/nokia/industrial-application-framework/application-lib/pkg/kubelib"
 	"github.com/pkg/errors"
 	"k8s.io/client-go/util/retry"
 
@@ -51,7 +51,7 @@ func NewMonitor(runtimeClient client.Client, instance common_types.OperatorCr, n
 			RuntimeClient:      runtimeClient,
 			Instance:           instance,
 			Namespace:          namespace,
-			ClientSet:          kubelib2.GetKubeAPI(),
+			ClientSet:          kubelib.GetKubeAPI(),
 			RunningCallback:    runningCallback,
 			NotRunningCallback: notRunningCallback,
 		}

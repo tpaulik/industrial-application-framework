@@ -6,8 +6,8 @@ package platformres
 
 import (
 	"fmt"
-	k8sdynamic2 "github.com/nokia/industrial-application-framework/application-lib/pkg/k8sdynamic"
-	kubelib2 "github.com/nokia/industrial-application-framework/application-lib/pkg/kubelib"
+	"github.com/nokia/industrial-application-framework/application-lib/pkg/k8sdynamic"
+	"github.com/nokia/industrial-application-framework/application-lib/pkg/kubelib"
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -27,11 +27,11 @@ const (
 	ApprovalStatusField = "approvalStatus"
 )
 
-func ApplyPlatformResourceRequests(namespace string, resourceRequestPath string) ([]k8sdynamic2.ResourceDescriptor, error) {
+func ApplyPlatformResourceRequests(namespace string, resourceRequestPath string) ([]k8sdynamic.ResourceDescriptor, error) {
 	logger := log.WithName("ApplyPlatformResourceRequests")
 	logger.Info("Called")
 
-	dynClient := k8sdynamic2.New(kubelib2.GetKubeAPI())
+	dynClient := k8sdynamic.New(kubelib.GetKubeAPI())
 	dir := resourceRequestPath
 	if dir == "" {
 		return nil, errors.New("resReqDir is not set")
@@ -42,7 +42,7 @@ func ApplyPlatformResourceRequests(namespace string, resourceRequestPath string)
 		return nil, errors.Wrapf(err, "failed to read dir: %v", dir)
 	}
 
-	var descList []k8sdynamic2.ResourceDescriptor
+	var descList []k8sdynamic.ResourceDescriptor
 	for _, file := range files {
 		if !file.IsDir() {
 			fileContent, err := ioutil.ReadFile(dir + "/" + file.Name())
@@ -64,17 +64,17 @@ func ApplyPlatformResourceRequests(namespace string, resourceRequestPath string)
 
 	return descList, nil
 }
-func ApplyPnaResourceRequests(namespace string, resourceRequestPath string) ([]k8sdynamic2.ResourceDescriptor, error) {
+func ApplyPnaResourceRequests(namespace string, resourceRequestPath string) ([]k8sdynamic.ResourceDescriptor, error) {
 	logger := log.WithName("ApplyPnaResourceRequests")
 	logger.Info("Called")
 
-	dynClient := k8sdynamic2.New(kubelib2.GetKubeAPI())
+	dynClient := k8sdynamic.New(kubelib.GetKubeAPI())
 	dir := resourceRequestPath
 	if dir == "" {
 		return nil, errors.New("resReqDir is not set")
 	}
 
-	var descList []k8sdynamic2.ResourceDescriptor
+	var descList []k8sdynamic.ResourceDescriptor
 	fileContent, err := ioutil.ReadFile(dir + "/private-network-access.yaml")
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read file")
@@ -88,7 +88,7 @@ func ApplyPnaResourceRequests(namespace string, resourceRequestPath string) ([]k
 	return descList, nil
 }
 
-func WaitUntilResourcesGranted(resourceList []k8sdynamic2.ResourceDescriptor, timeout time.Duration) error {
+func WaitUntilResourcesGranted(resourceList []k8sdynamic.ResourceDescriptor, timeout time.Duration) error {
 	logger := log.WithName("WaitUntilResourcesGranted")
 
 	var stopperList = sync.Map{}
@@ -156,7 +156,7 @@ func startWatchResourceRequest(name string, namespace string, resourceVersion st
 
 	logger.Info("Watching resource")
 
-	go k8sdynamic2.WatchInformer(
+	go k8sdynamic.WatchInformer(
 		name, namespace, resourceVersion, gvr,
 		cache.ResourceEventHandlerFuncs{
 			DeleteFunc: func(obj interface{}) {
