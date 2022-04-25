@@ -38,6 +38,7 @@ const (
 	DeploymentTypeStatefulset          = "statefulsets"
 	DeploymentTypeDaemonset            = "deamonsets"
 	PNAResourceName                    = "privatenetworkaccesses"
+	UsingPnaLabelKey                   = "ndac.appfw.private-network-access"
 	PrivateNetworkRoutingContainerName = "appfw-private-network-routing"
 )
 
@@ -211,7 +212,7 @@ func (r *OperatorReconciler) undeployAppComponentsAffectedByUpdate(namespace str
 	applicationCr := &appsv1.StatefulSet{}
 	opts := []client.DeleteAllOfOption{
 		client.InNamespace(namespace),
-		client.MatchingLabels{r.Configuration.UsingPnaLabelKey: r.Configuration.AppPnaName},
+		client.MatchingLabels{UsingPnaLabelKey: r.Configuration.AppPnaName},
 		client.GracePeriodSeconds(0),
 		client.PropagationPolicy(metav1.DeletePropagationBackground),
 	}
