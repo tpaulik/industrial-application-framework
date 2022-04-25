@@ -20,7 +20,6 @@ type OperatorConfig struct {
 	ServiceName       string         `yaml:"serviceName"`
 	DeploymentName    string         `yaml:"deploymentName"`
 	AppPnaName        string         `yaml:"appPnaName"`
-	UsingPnaLabelKey  string         `yaml:"usingPnaLabelKey"`
 	Template          TemplateConfig `yaml:"templater"`
 }
 
