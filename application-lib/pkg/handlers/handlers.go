@@ -112,7 +112,7 @@ func (r *OperatorReconciler) handleDelete(instance common_types.OperatorCr, name
 func (r *OperatorReconciler) handleUpdate(instance common_types.OperatorCr, namespace string) (reconcile.Result, error) {
 	logger := log.WithName("handlers").WithName("handleUpdate").WithValues("namespace", namespace, "name", instance.GetObjectMeta().Name)
 	logger.Info("Called")
-	if r.Functions.CheckAppParametersChanged(instance) {
+	if r.Functions.CheckNetworkParametersChanged(instance) {
 		log.V(1).Info("Network settings updated, reloading app")
 
 		err := r.undeployAppComponentsAffectedByUpdate(namespace)

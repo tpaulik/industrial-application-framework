@@ -13,6 +13,19 @@ const (
 	AppStatusFrozen     = "FROZEN"
 )
 
+type PrivateNetworkAccess struct {
+	ApnUUID              string       `json:"apnUUID,omitempty"`
+	Networks             []Network    `json:"networks,omitempty"`
+	AppNetwork           string       `json:"appNetwork"`
+	AdditionalRoutes     []string     `json:"additionalRoutes,omitempty"`
+	NetworkInterfaceName string       `json:"networkInterfaceName,omitempty"`
+	AppPodFixIp          *AppPodFixIp `json:"appPodFixIp,omitempty"`
+}
+
+type AppPodFixIp struct {
+	Db string `json:"db"`
+}
+
 type Network struct {
 	ApnUUID          string   `json:"apnUUID,omitempty"`
 	NetworkID        string   `json:"networkId,omitempty"`
