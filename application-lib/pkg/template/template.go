@@ -7,7 +7,7 @@ package template
 import (
 	"bytes"
 	"github.com/nokia/industrial-application-framework/application-lib/pkg/config"
-	copy2 "github.com/nokia/industrial-application-framework/application-lib/pkg/util/copy"
+	"github.com/nokia/industrial-application-framework/application-lib/pkg/util/copy"
 	"github.com/pkg/errors"
 	"io/ioutil"
 	"os"
@@ -71,7 +71,7 @@ func (t *Templater) RunCrTemplater(joinSeparator string) (string, error) {
 func (t *Templater) copyDeploymentYamls() error {
 	os.RemoveAll(t.WorkDir)
 
-	if err := copy2.CopyDir(t.SourceDir, t.WorkDir); err != nil {
+	if err := copy.CopyDir(t.SourceDir, t.WorkDir); err != nil {
 		return err
 	}
 

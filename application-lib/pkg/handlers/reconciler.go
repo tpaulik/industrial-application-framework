@@ -24,13 +24,13 @@ var log = logf.Log.WithName("common_operator_controller")
 type AppCrCreator func() common_types.OperatorCr
 type MonitorInstanceCreator func(common_types.OperatorCr, string, *OperatorReconciler) *monitoring.Monitor
 type LicenceExpiredHandlerCreator func(client.Client, common_types.OperatorCr, *kubernetes.Clientset, *monitoring.Monitor) licenceexpired.LicenceExpiredResourceFuncs
-type AppParametersChangedChecker func(common_types.OperatorCr) bool
+type NetworkParametersChangedChecker func(common_types.OperatorCr) bool
 
 type ReconcilerHookFunctions struct {
-	CreateAppCr                 AppCrCreator
-	CreateAppStatusMonitor      MonitorInstanceCreator
-	CreateLicenceExpiredHandler LicenceExpiredHandlerCreator
-	CheckAppParametersChanged   AppParametersChangedChecker
+	CreateAppCr                   AppCrCreator
+	CreateAppStatusMonitor        MonitorInstanceCreator
+	CreateLicenceExpiredHandler   LicenceExpiredHandlerCreator
+	CheckNetworkParametersChanged NetworkParametersChangedChecker
 }
 
 // OperatorReconciler reconciles a Application object

@@ -105,3 +105,27 @@ func CopyDir(src string, dst string) (err error) {
 
 	return
 }
+
+func RemoveDirWithContents(dir string) (err error) {
+	d, err := os.Open(dir)
+	if err != nil {
+		return
+	}
+	defer d.Close()
+	names, err := d.Readdirnames(-1)
+	if err != nil {
+		return
+	}
+	for _, name := range names {
+		err = os.RemoveAll(filepath.Join(dir, name))
+		if err != nil {
+			return
+		}
+	}
+
+	err = os.Remove(dir)
+	if err != nil {
+		return
+	}
+	return nil
+}

@@ -20,6 +20,7 @@ type OperatorCr interface {
 }
 
 type OperatorSpec interface {
+	GetPrivateNetworkAccess() *PrivateNetworkAccess
 }
 
 type OperatorStatus interface {
