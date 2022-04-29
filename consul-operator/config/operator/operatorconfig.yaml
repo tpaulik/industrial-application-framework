@@ -1,0 +1,13 @@
+applicationName: Consul
+deploymentSourceDir: deployment
+deploymentDir: /usr/src/app
+deploymentDirName: app-deployment
+resReqDir: /usr/src/app/resource-reqs-generated
+resReqDirName: resource-reqs
+serviceName: example-consul-service
+deploymentName: example-consul
+appPnaName: private-network-for-consul
+usingPnaLabelKey: ndac.appfw.private-network-access
+templater:
+    leftDelimiter: [[
+    rightDelimiter: ]]

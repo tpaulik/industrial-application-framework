@@ -7,7 +7,6 @@
 # Declare variables to be passed into your templates.
 
 replicaCount: [[ .ReplicaCount ]]
-metricsDomainName: [[ .MetricsDomainName ]]
 service:
   uiport: [[ .Ports.UiPort ]]
   altport: [[ .Ports.AltPort ]]

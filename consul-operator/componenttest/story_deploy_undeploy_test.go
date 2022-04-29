@@ -1,4 +1,4 @@
-// Copyright 2022 Nokia
+// Copyright 2020 Nokia
 // Licensed under the BSD 3-Clause License.
 // SPDX-License-Identifier: BSD-3-Clause
 
@@ -6,12 +6,11 @@ package componenttest
 
 import (
 	"context"
-
+	"github.com/nokia/industrial-application-framework/application-lib/pkg/kubelib"
+	common_types "github.com/nokia/industrial-application-framework/application-lib/pkg/types"
 	ctenv "github.com/nokia/industrial-application-framework/componenttest-lib/pkg/env"
 	ctk8sclient "github.com/nokia/industrial-application-framework/componenttest-lib/pkg/k8sclient"
 	. "github.com/nokia/industrial-application-framework/componenttest-lib/pkg/matcher"
-	appdacnokiacomv1alpha1 "github.com/nokia/industrial-application-framework/consul-operator/api/v1alpha1"
-	"github.com/nokia/industrial-application-framework/consul-operator/libs/kubelib"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
@@ -32,7 +31,6 @@ import (
 var log = logf.Log.WithName("consulTests")
 
 var k8sClient client.Client
-var consulOperatorCr *appdacnokiacomv1alpha1.Consul
 
 var _ = Describe("Consul Operator Component Tests", func() {
 	BeforeEach(func() {
@@ -43,7 +41,7 @@ var _ = Describe("Consul Operator Component Tests", func() {
 
 	var err error
 
-	var consulCrInstance *appdacnokiacomv1alpha1.Consul
+	var consulCrInstance common_types.OperatorCr
 	var consulStatefulSet *appsv1.StatefulSet
 
 	Describe("Consul Operator deploy case", func() {
@@ -55,8 +53,6 @@ var _ = Describe("Consul Operator Component Tests", func() {
 		Context("The Test Environment", func() {
 			It("sets the necessary environment variables", func() {
 
-				os.Setenv("DEPLOYMENT_DIR", "../deployment")
-				os.Setenv("RESREQ_DIR", "../deployment/resource-reqs-generated")
 				os.Setenv("KUBECONFIG", ctenv.LocalCfg.KubeConfig)
 
 				log.Info("Kubernetes Temporary Location", "Kubeconfig file", ctenv.LocalCfg.KubeConfig)

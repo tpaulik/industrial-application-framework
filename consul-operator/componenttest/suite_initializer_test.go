@@ -5,11 +5,15 @@
 package componenttest
 
 import (
+	"github.com/nokia/industrial-application-framework/application-lib/pkg/config"
+	"github.com/nokia/industrial-application-framework/application-lib/pkg/handlers"
+	"github.com/nokia/industrial-application-framework/application-lib/pkg/k8sdynamic"
+	"github.com/nokia/industrial-application-framework/application-lib/pkg/kubelib"
 	ctenv "github.com/nokia/industrial-application-framework/componenttest-lib/pkg/env"
 	appdacnokiacomv1alpha1 "github.com/nokia/industrial-application-framework/consul-operator/api/v1alpha1"
 	"github.com/nokia/industrial-application-framework/consul-operator/controllers"
-	"github.com/nokia/industrial-application-framework/consul-operator/libs/kubelib"
-	"github.com/nokia/industrial-application-framework/consul-operator/pkg/k8sdynamic"
+	"github.com/nokia/industrial-application-framework/consul-operator/pkg/licenceexpired"
+	"github.com/nokia/industrial-application-framework/consul-operator/pkg/monitoring"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
@@ -53,7 +57,7 @@ func CustomTearUp() {
 
 	k8sManager, err := ctrl.NewManager(ctenv.Cfg, ctrl.Options{
 		MetricsBindAddress: ":8383",
-		Scheme: ourScheme,
+		Scheme:             ourScheme,
 	})
 	Expect(err).ToNot(HaveOccurred())
 
@@ -62,10 +66,35 @@ func CustomTearUp() {
 	Expect(err).NotTo(HaveOccurred())
 	Expect(k8sClient).NotTo(BeNil())
 
-	err = (&controllers.ConsulReconciler{
-		Client: k8sManager.GetClient(),
-		Scheme: k8sManager.GetScheme(),
-	}).SetupWithManager(k8sManager)
+	operatorConfiguration := config.OperatorConfig{
+		ApplicationName:   "Consul",
+		DeploymentDir:     "../deployment",
+		DeploymentDirName: "app-deployment",
+		ResReqDir:         "../deployment/resource-reqs-generated",
+		ResReqDirName:     "resource-reqs",
+		ServiceName:       consulServiceName,
+		DeploymentName:    consulStatefulSetName,
+		AppPnaName:        "private-network-for-consul",
+		Template: config.TemplateConfig{
+			LeftDelimiter:  "[[",
+			RightDelimiter: "]]",
+		}}
+
+	reconciler := controllers.ConsulReconciler{
+		Common: handlers.OperatorReconciler{
+			Client:        k8sManager.GetClient(),
+			Scheme:        k8sManager.GetScheme(),
+			Configuration: operatorConfiguration,
+			Functions: handlers.ReconcilerHookFunctions{
+				CreateAppCr:                 appdacnokiacomv1alpha1.CreateAppInstance,
+				CreateAppStatusMonitor:      monitoring.CreateAppStatusMonitor,
+				CreateLicenceExpiredHandler: licenceexpired.CreateLicenseExpiredHandler,
+			},
+		},
+	}
+
+	err = controllers.SetupWithManager(k8sManager, &reconciler)
+
 	Expect(err).ToNot(HaveOccurred())
 
 	By("Starting the Operator")
