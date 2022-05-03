@@ -19,6 +19,10 @@ type OperatorCr interface {
 	runtime.Object
 }
 
+type AppReportedData interface {
+	SetPrivateNetworkIpAddress(privateNetworkIpAddress map[string]string)
+}
+
 type OperatorSpec interface {
 	GetPrivateNetworkAccess() *PrivateNetworkAccess
 }
@@ -31,4 +35,5 @@ type OperatorStatus interface {
 	GetPrevSpec() OperatorSpec
 	GetPrevSpecDeepCopy() OperatorSpec
 	SetPrevSpec(spec OperatorSpec) error
+	GetAppReportedData() AppReportedData
 }

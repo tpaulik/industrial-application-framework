@@ -29,11 +29,6 @@ func (in *PrivateNetworkAccess) DeepCopyInto(out *PrivateNetworkAccess) {
 			(*in)[i].DeepCopyInto(&(*out)[i])
 		}
 	}
-	if in.AdditionalRoutes != nil {
-		in, out := &in.AdditionalRoutes, &out.AdditionalRoutes
-		*out = make([]string, len(*in))
-		copy(*out, *in)
-	}
 	if in.AppPodFixIp != nil {
 		in, out := &in.AppPodFixIp, &out.AppPodFixIp
 		*out = new(AppPodFixIp)
