@@ -4,7 +4,7 @@ go 1.16
 
 require (
 	github.com/nokia/industrial-application-framework/alarmlogger v0.0.0-20210824095151-771352d42ef7
-	github.com/nokia/industrial-application-framework/application-lib v0.0.0-20220428145117-529b89efc4c2
+	github.com/nokia/industrial-application-framework/application-lib v0.0.0-20220503121909-98f104c63cd2
 	github.com/nokia/industrial-application-framework/componenttest-lib v0.0.0-20220302154657-2b2f359ea42d
 	github.com/onsi/ginkgo v1.16.4
 	github.com/onsi/gomega v1.16.0

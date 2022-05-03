@@ -62,7 +62,7 @@ spec:
                   description: Static IP addresses to be used for application pods if
                     provided
                   type: object
-                customerNetwork:
+                appNetwork:
                   description: network defined by the customer for the application,
                     this network will be connected to the UE net and the app components
                     will get IP from this.
@@ -105,7 +105,7 @@ spec:
                 - required: [ "apnUUID" ]
                 - required: [ "networks" ]
               required:
-                - customerNetwork
+                - appNetwork
               type: object
             status:
               description: PrivateNetworkAccessStatus defines the observed state of

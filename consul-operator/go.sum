@@ -389,8 +389,8 @@ github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e h1:fD57ERR4JtEqsWb
 github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e/go.mod h1:zD1mROLANZcx1PVRCS0qkT7pwLkGfwJo4zjcN/Tysno=
 github.com/nokia/industrial-application-framework/alarmlogger v0.0.0-20210824095151-771352d42ef7 h1:zzdSufjKvBTO7dem79aP80fnGyeZQRKz/1OFTYvZQUk=
 github.com/nokia/industrial-application-framework/alarmlogger v0.0.0-20210824095151-771352d42ef7/go.mod h1:Y+VlyPQvusjjrjGdCVnmm43G5HWR9Djn1m5Y/kow/Ho=
-github.com/nokia/industrial-application-framework/application-lib v0.0.0-20220428145117-529b89efc4c2 h1:GkCTXaM+gOE2ajHICOlz7r+2Rsn1NvnulpFqWyKAfZo=
-github.com/nokia/industrial-application-framework/application-lib v0.0.0-20220428145117-529b89efc4c2/go.mod h1:xz+5MOzGfPugj6ioT73UfgCUtZcr7Y0BMsIxSLmJWkE=
+github.com/nokia/industrial-application-framework/application-lib v0.0.0-20220503121909-98f104c63cd2 h1:41pryKOv/KAXfQ4jNhNTOvyA1EmJLHk59pChI1Hi4m4=
+github.com/nokia/industrial-application-framework/application-lib v0.0.0-20220503121909-98f104c63cd2/go.mod h1:xz+5MOzGfPugj6ioT73UfgCUtZcr7Y0BMsIxSLmJWkE=
 github.com/nokia/industrial-application-framework/componenttest-lib v0.0.0-20220302154657-2b2f359ea42d h1:d6UWx3o9rvNnolc3hmam83ABWnxBVIvzLuueu5OjJIo=
 github.com/nokia/industrial-application-framework/componenttest-lib v0.0.0-20220302154657-2b2f359ea42d/go.mod h1:4FQLWTgN9DrxjRSSSv+AwXVaLtzk7kZ/gR6fhdYqpaU=
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=

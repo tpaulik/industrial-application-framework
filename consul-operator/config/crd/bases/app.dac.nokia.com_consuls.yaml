@@ -62,12 +62,6 @@ spec:
                 type: object
               privateNetworkAccess:
                 properties:
-                  additionalRoutes:
-                    items:
-                      type: string
-                    type: array
-                  apnUUID:
-                    type: string
                   appPodFixIp:
                     properties:
                       db:
@@ -95,9 +89,6 @@ spec:
                         - required: [ "networkId" ]
                       type: object
                     type: array
-                oneOf:
-                  - required: [ "apnUUID" ]
-                  - required: [ "networks" ]
                 required:
                 - appNetwork
                 type: object
@@ -175,12 +166,6 @@ spec:
                     type: object
                   privateNetworkAccess:
                     properties:
-                      additionalRoutes:
-                        items:
-                          type: string
-                        type: array
-                      apnUUID:
-                        type: string
                       appPodFixIp:
                         properties:
                           db:
@@ -208,9 +193,6 @@ spec:
                             - required: [ "networkId" ]
                           type: object
                         type: array
-                    oneOf:
-                      - required: [ "apnUUID" ]
-                      - required: [ "networks" ]
                     required:
                     - appNetwork
                     type: object

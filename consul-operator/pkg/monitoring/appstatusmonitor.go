@@ -9,7 +9,6 @@ import (
 	"github.com/nokia/industrial-application-framework/application-lib/pkg/handlers"
 	"github.com/nokia/industrial-application-framework/application-lib/pkg/monitoring"
 	common_types "github.com/nokia/industrial-application-framework/application-lib/pkg/types"
-	"github.com/nokia/industrial-application-framework/consul-operator/api/v1alpha1"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -24,18 +23,15 @@ func CreateAppStatusMonitor(instance common_types.OperatorCr, namespace string, 
 			logger.Info("Set AppReportedData")
 			//runningCallback - example, some dynamic data should be reported here which has value only after the deployment
 
-			consulInstance := instance.(*v1alpha1.Consul)
-
-			//not necessarily needed
 			if instance.GetSpec().GetPrivateNetworkAccess() != nil {
-				consulInstance.Status.AppReportedData.PrivateNetworkIpAddress = handlers.GetPrivateNetworkIpAddresses(
+				instance.GetStatus().GetAppReportedData().SetPrivateNetworkIpAddress(handlers.GetPrivateNetworkIpAddresses(
 					namespace,
 					reconciler.Configuration.AppPnaName,
 					[]handlers.DeploymentId{
 						{DeploymentType: handlers.DeploymentTypeStatefulset,
 							Name: reconciler.Configuration.DeploymentName},
 					},
-				)
+				))
 			}
 
 			if err := reconciler.Client.Status().Update(context.TODO(), instance); nil != err {

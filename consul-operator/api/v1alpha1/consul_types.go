@@ -83,6 +83,10 @@ func (in *ConsulStatus) SetAppliedResources(resources []k8sdynamic.ResourceDescr
 	in.AppliedResources = resources
 }
 
+func (in *ConsulStatus) GetAppReportedData() common_types.AppReportedData {
+	return &in.AppReportedData
+}
+
 type Ports struct {
 	UiPort    int `json:"uiPort,omitempty"`
 	AltPort   int `json:"altPort,omitempty"`
