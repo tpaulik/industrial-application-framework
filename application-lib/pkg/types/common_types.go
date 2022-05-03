@@ -14,10 +14,8 @@ const (
 )
 
 type PrivateNetworkAccess struct {
-	ApnUUID              string       `json:"apnUUID,omitempty"`
 	Networks             []Network    `json:"networks,omitempty"`
 	AppNetwork           string       `json:"appNetwork"`
-	AdditionalRoutes     []string     `json:"additionalRoutes,omitempty"`
 	NetworkInterfaceName string       `json:"networkInterfaceName,omitempty"`
 	AppPodFixIp          *AppPodFixIp `json:"appPodFixIp,omitempty"`
 }
