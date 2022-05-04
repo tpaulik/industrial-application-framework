@@ -8,7 +8,7 @@ kind: PrivateNetworkAccess
 metadata:
   name: private-network-for-consul
 spec:
-  appNetwork: [[ .PrivateNetworkAccess.AppNetwork ]]
+  customerNetwork: [[ .PrivateNetworkAccess.AppNetwork ]]
   [[ if .PrivateNetworkAccess.AppPodFixIp ]]
   appPodFixIp:
     [[ if  .PrivateNetworkAccess.AppPodFixIp.Db ]]
