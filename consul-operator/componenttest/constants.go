@@ -43,7 +43,7 @@ const (
 
 	apnUUID = "apn:anyApnUUID"
 
-	consulTestDefaultTimeout = 6 * time.Second
+	consulTestDefaultTimeout = 5 * time.Second
 	testNamespace            = "consul-test-ns"
 
 	opsGroup  = "ops.dac.nokia.com"
