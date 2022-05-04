@@ -106,10 +106,6 @@ spec:
             properties:
               appReportedData:
                 properties:
-                  metricsClusterIp:
-                    description: The structure of this type is up the application.
-                      AppFw will convert the whole representation to JSON.
-                    type: string
                   privateNetworkIpAddresses:
                     additionalProperties:
                       type: string
