@@ -34,6 +34,7 @@ COPY --from=builder /workspace/app-operator .
 COPY deployment/helm /usr/local/bin/helm
 RUN chmod +x  /usr/local/bin/helm
 COPY deployment/app-deployment /usr/src/app/app-deployment
+COPY deployment/config /usr/src/app/config
 COPY deployment/resource-reqs /usr/src/app/resource-reqs
 RUN chmod -R 770 /usr/src/app/
 

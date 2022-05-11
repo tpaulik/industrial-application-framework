@@ -33,7 +33,7 @@ import (
 )
 
 const (
-	configDir = "deployment/config"
+	configDir = "/usr/src/app/config"
 )
 
 var (
