@@ -33,7 +33,7 @@ import (
 )
 
 const (
-	configDir = "config/operator"
+	configDir = "deployment/config"
 )
 
 var (
