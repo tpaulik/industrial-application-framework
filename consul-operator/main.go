@@ -8,6 +8,11 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/nokia/industrial-application-framework/application-lib/pkg/config"
+	"github.com/nokia/industrial-application-framework/application-lib/pkg/handlers"
+	"github.com/nokia/industrial-application-framework/consul-operator/pkg/licenceexpired"
+	"github.com/nokia/industrial-application-framework/consul-operator/pkg/monitoring"
+	"github.com/nokia/industrial-application-framework/consul-operator/pkg/parameters"
 	"github.com/operator-framework/operator-lib/leader"
 	"os"
 
@@ -25,6 +30,10 @@ import (
 	appdacnokiacomv1alpha1 "github.com/nokia/industrial-application-framework/consul-operator/api/v1alpha1"
 	"github.com/nokia/industrial-application-framework/consul-operator/controllers"
 	//+kubebuilder:scaffold:imports
+)
+
+const (
+	configDir = "/usr/src/app/config"
 )
 
 var (
@@ -83,11 +92,28 @@ func main() {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
+	var operatorConfig config.OperatorConfig
+	operatorConfig, err = config.GetConfiguration(configDir)
+	if err != nil {
+		setupLog.Error(err, "unable to read configuration")
+		os.Exit(1)
+	}
 
-	if err = (&controllers.ConsulReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
+	reconciler := controllers.ConsulReconciler{
+		Common: handlers.OperatorReconciler{
+			Client:        mgr.GetClient(),
+			Scheme:        mgr.GetScheme(),
+			Configuration: operatorConfig,
+			Functions: handlers.ReconcilerHookFunctions{
+				CreateAppCr:                   appdacnokiacomv1alpha1.CreateAppInstance,
+				CreateAppStatusMonitor:        monitoring.CreateAppStatusMonitor,
+				CreateLicenceExpiredHandler:   licenceexpired.CreateLicenseExpiredHandler,
+				CheckNetworkParametersChanged: parameters.NetworkParametersChanged,
+			},
+		},
+	}
+
+	if err = controllers.SetupWithManager(mgr, &reconciler); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Consul")
 		os.Exit(1)
 	}

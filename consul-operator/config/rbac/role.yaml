@@ -2,7 +2,6 @@
 # Licensed under the BSD 3-Clause License.
 # SPDX-License-Identifier: BSD-3-Clause
 
-
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role

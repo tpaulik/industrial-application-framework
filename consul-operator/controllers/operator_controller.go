@@ -6,29 +6,22 @@ package controllers
 
 import (
 	"context"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
-	"sigs.k8s.io/controller-runtime/pkg/controller"
-	"sigs.k8s.io/controller-runtime/pkg/handler"
-	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	"sigs.k8s.io/controller-runtime/pkg/source"
-
-	"k8s.io/apimachinery/pkg/runtime"
-	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
-	logf "sigs.k8s.io/controller-runtime/pkg/log"
-
+	"github.com/nokia/industrial-application-framework/application-lib/pkg/handlers"
 	app "github.com/nokia/industrial-application-framework/consul-operator/api/v1alpha1"
+	corev1 "k8s.io/api/core/v1"
+	ctrl "sigs.k8s.io/controller-runtime"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
+	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 )
 
 var log = logf.Log.WithName("controller_consul")
 
-// ConsulReconciler reconciles a Consul object
+// OperatorReconciler reconciles a Application object
 type ConsulReconciler struct {
-	client.Client
-	Scheme *runtime.Scheme
+	Common handlers.OperatorReconciler
 }
 
+//<kubebuilder-annotations>
 //+kubebuilder:rbac:groups=app.dac.nokia.com,namespace=app-ns,resources=consuls,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=app.dac.nokia.com,namespace=app-ns,resources=consuls/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=app.dac.nokia.com,namespace=app-ns,resources=consuls/finalizers,verbs=update
@@ -39,6 +32,7 @@ type ConsulReconciler struct {
 //+kubebuilder:rbac:groups="apps",resourceNames=consul-operator,namespace=app-ns,resources=deployments/finalizers,verbs=update
 //+kubebuilder:rbac:groups="monitoring.coreos.com",namespace=app-ns,resources=servicemonitors,verbs=get;create
 //+kubebuilder:rbac:groups="coordination.k8s.io",namespace=app-ns,resources=leases,verbs=get;list;watch;create;update;patch;delete
+//</kubebuilder-annotations>
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -51,51 +45,15 @@ type ConsulReconciler struct {
 // - https://pkg.go.dev/sigs.k8s.io/controller-etcd
 //kube-apiserverruntime@v0.9.2/pkg/reconcile
 func (r *ConsulReconciler) Reconcile(ctx context.Context, request ctrl.Request) (ctrl.Result, error) {
-	_ = logf.FromContext(ctx)
-
-	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
-	reqLogger.Info("Reconciling Consul")
-
-	// Fetch the Consul instance
-	instance := &app.Consul{}
-	err := r.Client.Get(context.TODO(), request.NamespacedName, instance)
-	if err != nil {
-		if errors.IsNotFound(err) {
-			// Request object not found, could have been deleted after reconcile request.
-			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
-			// Return and don't requeue
-			return reconcile.Result{}, nil
-		}
-		// Error reading the object - requeue the request.
-		return reconcile.Result{}, err
-	}
-
-	return r.handleCrChange(instance, request.Namespace)
+	return r.Common.Reconcile(ctx, request)
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *ConsulReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	// Create a new controller
-	c, err := controller.New("consul-controller", mgr, controller.Options{Reconciler: r})
-	if err != nil {
-		return err
-	}
+func SetupWithManager(mgr ctrl.Manager, reconciler reconcile.Reconciler) error {
 
-	// Watch for changes to primary resource Consul
-	err = c.Watch(&source.Kind{Type: &app.Consul{}}, &handler.EnqueueRequestForObject{}, &CustomPredicate{})
-	if err != nil {
-		return err
-	}
-
-	// TODO(user): Modify this to be the types you create that are owned by the primary resource
-	// Watch for changes to secondary resource Pods and requeue the owner Consul
-	err = c.Watch(&source.Kind{Type: &corev1.Pod{}}, &handler.EnqueueRequestForOwner{
-		IsController: true,
-		OwnerType:    &app.Consul{},
-	})
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return ctrl.NewControllerManagedBy(mgr).
+		For(app.CreateAppInstance()).
+		Owns(&corev1.Pod{}).
+		WithEventFilter(&CustomPredicate{}).
+		Complete(reconciler)
 }

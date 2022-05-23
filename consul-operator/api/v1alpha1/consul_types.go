@@ -5,31 +5,11 @@
 package v1alpha1
 
 import (
-	"github.com/nokia/industrial-application-framework/consul-operator/pkg/k8sdynamic"
+	"errors"
+	"github.com/nokia/industrial-application-framework/application-lib/pkg/k8sdynamic"
+	common_types "github.com/nokia/industrial-application-framework/application-lib/pkg/types"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
-
-type AppStatus string
-
-const (
-	AppStatusNotSet     = "UNSET"
-	AppStatusNotRunning = "NOT_RUNNING"
-	AppStatusRunning    = "RUNNING"
-	AppStatusFrozen     = "FROZEN"
-)
-
-type PrivateNetworkAccess struct {
-	ApnUUID              string       `json:"apnUUID,omitempty"`
-	Networks             []Network    `json:"networks,omitempty"`
-	CustomerNetwork      string       `json:"customerNetwork"`
-	AdditionalRoutes     []string     `json:"additionalRoutes,omitempty"`
-	NetworkInterfaceName string       `json:"networkInterfaceName,omitempty"`
-	AppPodFixIp          *AppPodFixIp `json:"appPodFixIp,omitempty"`
-}
-
-type AppPodFixIp struct {
-	Db string `json:"db"`
-}
 
 // EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
@@ -39,19 +19,22 @@ type ConsulSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make generate" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
-
-	ReplicaCount int   `json:"replicaCount"`
-	Ports        Ports `json:"ports"`
-	// Deprecated
-	MetricsDomainName    string                `json:"metricsDomainName,omitempty"`
-	PrivateNetworkAccess *PrivateNetworkAccess `json:"privateNetworkAccess,omitempty"`
+	ReplicaCount         int                                `json:"replicaCount"`
+	Ports                Ports                              `json:"ports"`
+	PrivateNetworkAccess *common_types.PrivateNetworkAccess `json:"privateNetworkAccess,omitempty"`
 }
 
-type AppReporteData struct {
-	//The structure of this type is up the application. AppFw will convert the whole representation to JSON.
-	MetricsClusterIp string `json:"metricsClusterIp,omitempty"`
+func (in *ConsulSpec) GetPrivateNetworkAccess() *common_types.PrivateNetworkAccess {
+	return in.PrivateNetworkAccess
+}
+
+type AppReportedData struct {
 	//Ip addresses of the services that received IP address from the private network
 	PrivateNetworkIpAddress map[string]string `json:"privateNetworkIpAddresses,omitempty"`
+}
+
+func (in *AppReportedData) SetPrivateNetworkIpAddress(privateNetworkIpAddress map[string]string) {
+	in.PrivateNetworkIpAddress = privateNetworkIpAddress
 }
 
 // ConsulStatus defines the observed state of Consul
@@ -60,9 +43,48 @@ type ConsulStatus struct {
 	// Important: Run "make generate" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book-v1.book.kubebuilder.io/beyond_basics/generating_crd.html
 	PrevSpec         *ConsulSpec                     `json:"prevSpec,omitempty"`
-	AppStatus        AppStatus                       `json:"appStatus,omitempty"`
-	AppReportedData  AppReporteData                  `json:"appReportedData,omitempty"`
+	AppStatus        common_types.AppStatus          `json:"appStatus,omitempty"`
+	AppReportedData  AppReportedData                 `json:"appReportedData,omitempty"`
 	AppliedResources []k8sdynamic.ResourceDescriptor `json:"appliedResources,omitempty"`
+}
+
+func (in *ConsulStatus) GetAppStatus() common_types.AppStatus {
+	return in.AppStatus
+}
+
+func (in *ConsulStatus) SetAppStatus(status common_types.AppStatus) {
+	in.AppStatus = status
+}
+
+func (in *ConsulStatus) GetPrevSpec() common_types.OperatorSpec {
+	return in.PrevSpec
+}
+
+func (in *ConsulStatus) GetPrevSpecDeepCopy() common_types.OperatorSpec {
+	return in.PrevSpec.DeepCopy()
+}
+
+func (in *ConsulStatus) SetPrevSpec(spec common_types.OperatorSpec) error {
+	switch spec.(type) {
+	case *ConsulSpec:
+		consulSpec := spec.(*ConsulSpec)
+		in.PrevSpec = consulSpec
+		return nil
+	default:
+		return errors.New("SetPrevSpec type is not of type *Consulspec")
+	}
+}
+
+func (in *ConsulStatus) GetAppliedResources() []k8sdynamic.ResourceDescriptor {
+	return in.AppliedResources
+
+}
+func (in *ConsulStatus) SetAppliedResources(resources []k8sdynamic.ResourceDescriptor) {
+	in.AppliedResources = resources
+}
+
+func (in *ConsulStatus) GetAppReportedData() common_types.AppReportedData {
+	return &in.AppReportedData
 }
 
 type Ports struct {
@@ -91,6 +113,24 @@ type Consul struct {
 	Status ConsulStatus `json:"status,omitempty"`
 }
 
+func (in *Consul) GetTypeMeta() metav1.TypeMeta {
+	return in.TypeMeta
+}
+
+func (in *Consul) GetObjectMeta() metav1.ObjectMeta {
+	return in.ObjectMeta
+}
+func (in *Consul) GetSpec() common_types.OperatorSpec {
+	return &in.Spec
+}
+func (in *Consul) GetStatus() common_types.OperatorStatus {
+	return &in.Status
+}
+
+func CreateAppInstance() common_types.OperatorCr {
+	return &Consul{}
+}
+
 // +kubebuilder:object:root=true
 
 // ConsulList contains a list of Consul
@@ -98,12 +138,6 @@ type ConsulList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata,omitempty"`
 	Items           []Consul `json:"items"`
-}
-
-type Network struct {
-	ApnUUID          string   `json:"apnUUID,omitempty"`
-	NetworkID        string   `json:"networkId,omitempty"`
-	AdditionalRoutes []string `json:"additionalRoutes,omitempty"`
 }
 
 func init() {

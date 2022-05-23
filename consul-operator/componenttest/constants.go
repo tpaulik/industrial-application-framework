@@ -5,13 +5,13 @@
 package componenttest
 
 import (
-	"time"
-
+	common_types "github.com/nokia/industrial-application-framework/application-lib/pkg/types"
 	. "github.com/nokia/industrial-application-framework/componenttest-lib/pkg/matcher"
 	appdacnokiacomv1alpha1 "github.com/nokia/industrial-application-framework/consul-operator/api/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
+	"time"
 )
 
 const (
@@ -39,7 +39,6 @@ const (
 	uiPort    = 8500
 
 	replicaCount         = 1
-	metricsDomain        = "metrics.consul.appdomain.com"
 	networkInterfaceName = "consul-if"
 
 	apnUUID = "apn:anyApnUUID"
@@ -130,7 +129,7 @@ var ports = appdacnokiacomv1alpha1.Ports{
 	Server:    server,
 }
 
-var networks = []appdacnokiacomv1alpha1.Network{{ApnUUID: apnUUID, AdditionalRoutes: []string{"192.168.1.0/28", "192.168.1.16/28"}}}
+var networks = []common_types.Network{{ApnUUID: apnUUID, AdditionalRoutes: []string{"192.168.1.0/28", "192.168.1.16/28"}}}
 
 func getConsulCrInstance() *appdacnokiacomv1alpha1.Consul {
 	consulCrInstance := appdacnokiacomv1alpha1.Consul{
@@ -143,14 +142,13 @@ func getConsulCrInstance() *appdacnokiacomv1alpha1.Consul {
 			Namespace: testNamespace,
 		},
 		Spec: appdacnokiacomv1alpha1.ConsulSpec{
-			ReplicaCount:      replicaCount,
-			Ports:             ports,
-			MetricsDomainName: metricsDomain,
-			PrivateNetworkAccess: &appdacnokiacomv1alpha1.PrivateNetworkAccess{
+			ReplicaCount: replicaCount,
+			Ports:        ports,
+			PrivateNetworkAccess: &common_types.PrivateNetworkAccess{
 				Networks:             networks,
-				CustomerNetwork:      "192.168.0.0/28",
+				AppNetwork:           "192.168.0.0/28",
 				NetworkInterfaceName: networkInterfaceName,
-				AppPodFixIp: &appdacnokiacomv1alpha1.AppPodFixIp{
+				AppPodFixIp: &common_types.AppPodFixIp{
 					Db: appPodFixIp,
 				},
 			},

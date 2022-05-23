@@ -7,10 +7,10 @@ eg: status updates, restart cases, etc*/
 package controllers
 
 import (
+	common_types "github.com/nokia/industrial-application-framework/application-lib/pkg/types"
+	"github.com/nokia/industrial-application-framework/application-lib/pkg/util/finalizer"
 	"reflect"
 
-	app "github.com/nokia/industrial-application-framework/consul-operator/api/v1alpha1"
-	"github.com/nokia/industrial-application-framework/consul-operator/pkg/util/finalizer"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 )
 
@@ -18,7 +18,7 @@ type CustomPredicate struct{}
 
 func (CustomPredicate) Create(event event.CreateEvent) bool {
 	logger := log.WithName("predicate").WithName("create_event")
-	instance, ok := event.Object.(*app.Consul)
+	instance, ok := event.Object.(common_types.OperatorCr)
 
 	logger.V(1).Info("Event received", "object", instance)
 
@@ -34,7 +34,7 @@ func (CustomPredicate) Create(event event.CreateEvent) bool {
 func (CustomPredicate) Delete(event event.DeleteEvent) bool {
 	logger := log.WithName("predicate").WithName("delete_event")
 	logger.V(1).Info("Event received")
-	instance, ok := event.Object.(*app.Consul)
+	instance, ok := event.Object.(common_types.OperatorCr)
 
 	if ok && finalizer.HasFinalizers(instance) {
 		logger.Info("Event can be reconciled")
@@ -48,8 +48,8 @@ func (CustomPredicate) Update(event event.UpdateEvent) bool {
 	logger := log.WithName("predicate").WithName("update_event")
 	logger.V(1).Info("Event received")
 
-	oldInstance, okOld := event.ObjectOld.(*app.Consul)
-	newInstance, okNew := event.ObjectNew.(*app.Consul)
+	oldInstance, okOld := event.ObjectOld.(common_types.OperatorCr)
+	newInstance, okNew := event.ObjectNew.(common_types.OperatorCr)
 
 	if okOld && okNew {
 		logger.V(1).Info("New object content", "object", newInstance)
@@ -69,16 +69,16 @@ func (CustomPredicate) Update(event event.UpdateEvent) bool {
 	return false
 }
 
-func isChangeInSpec(oldInstance *app.Consul, newInstance *app.Consul) bool {
-	return !reflect.DeepEqual(oldInstance.Spec, newInstance.Spec)
+func isChangeInSpec(oldInstance common_types.OperatorCr, newInstance common_types.OperatorCr) bool {
+	return !reflect.DeepEqual(oldInstance.GetSpec(), newInstance.GetSpec())
 }
 
-func isFinalizerAddition(oldInstance *app.Consul, newInstance *app.Consul) bool {
+func isFinalizerAddition(oldInstance common_types.OperatorCr, newInstance common_types.OperatorCr) bool {
 	return !finalizer.HasFinalizers(oldInstance) && finalizer.HasFinalizers(newInstance)
 }
 
-func isDeleteEvent(oldInstance *app.Consul, newInstance *app.Consul) bool {
-	return oldInstance.DeletionTimestamp == nil && newInstance.DeletionTimestamp != nil
+func isDeleteEvent(oldInstance common_types.OperatorCr, newInstance common_types.OperatorCr) bool {
+	return oldInstance.GetDeletionTimestamp() == nil && newInstance.GetDeletionTimestamp() != nil
 }
 
 func (CustomPredicate) Generic(event.GenericEvent) bool {

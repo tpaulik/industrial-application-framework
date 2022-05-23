@@ -8,7 +8,7 @@ kind: PrivateNetworkAccess
 metadata:
   name: private-network-for-consul
 spec:
-  customerNetwork: [[ .PrivateNetworkAccess.CustomerNetwork ]]
+  customerNetwork: [[ .PrivateNetworkAccess.AppNetwork ]]
   [[ if .PrivateNetworkAccess.AppPodFixIp ]]
   appPodFixIp:
     [[ if  .PrivateNetworkAccess.AppPodFixIp.Db ]]
@@ -18,16 +18,6 @@ spec:
   [[ if .PrivateNetworkAccess.NetworkInterfaceName ]]
   networkInterfaceName: [[ .PrivateNetworkAccess.NetworkInterfaceName ]]
   [[ end ]]
-  [[ if .PrivateNetworkAccess.ApnUUID ]]
-  networks:
-    - apnUUID: [[ .PrivateNetworkAccess.ApnUUID ]]
-      [[ if .PrivateNetworkAccess.AdditionalRoutes ]]
-      additionalRoutes:
-        [[ range .PrivateNetworkAccess.AdditionalRoutes ]]
-        - [[ . ]]
-        [[ end ]]
-      [[ end ]]
-  [[ else if .PrivateNetworkAccess.Networks ]]
   networks:
   [[ range .PrivateNetworkAccess.Networks ]]
     [[ if .ApnUUID ]]
@@ -41,6 +31,5 @@ spec:
         - [[ . ]]
         [[ end ]]
     [[ end ]]
-  [[ end ]]
   [[ end ]]
 [[ end ]]

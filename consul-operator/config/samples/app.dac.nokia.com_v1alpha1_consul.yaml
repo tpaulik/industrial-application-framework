@@ -8,7 +8,6 @@ metadata:
   name: example-consul
 spec:
   replicaCount: 1
-  metricsDomainName: metrics.consul.appdomain.com
   ports:
     uiPort: 8500
     altPort: 8400
