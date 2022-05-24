@@ -98,7 +98,7 @@ func (r *OperatorReconciler) handleDelete(instance common_types.OperatorCr, name
 	}
 
 	//Optional - if helm was used for the deployment helm has to be used also for the undeployment
-	h := helm.NewHelm(namespace, r.Configuration.DeploymentDir, nil)
+	h := helm.NewHelm(namespace, r.Configuration.RuntimeDeploymentPath, nil)
 	if err := h.Undeploy(); err != nil {
 		logger.Error(err, "failed to uninstall the helm chart")
 	}
@@ -143,7 +143,7 @@ func (r *OperatorReconciler) handleUpdate(instance common_types.OperatorCr, name
 
 		//Recreate resources and redeploy application
 		//Execute CR based templating to resolve the variables in the resource-req dir
-		resReqTemplater, err := template.NewTemplater(instance.GetSpec(), namespace, r.Configuration.DeploymentDir, r.Configuration.ResReqDirName, r.Configuration.Template)
+		resReqTemplater, err := template.NewTemplater(instance.GetSpec(), namespace, r.Configuration.RuntimeDeploymentPath, r.Configuration.ResReqDirName, r.Configuration.Template)
 		if err != nil {
 			logger.Error(err, "Failed to initialize the res-req appDeploymentTemplater")
 			return reconcile.Result{}, nil
@@ -155,7 +155,7 @@ func (r *OperatorReconciler) handleUpdate(instance common_types.OperatorCr, name
 		}
 
 		//Request NDAC platform resources
-		appliedPlatformResourceDescriptors, err := platformres.ApplyPnaResourceRequests(namespace, r.Configuration.ResReqDir)
+		appliedPlatformResourceDescriptors, err := platformres.ApplyPnaResourceRequests(namespace, r.Configuration.RuntimeResReqPath)
 		if err != nil {
 			logger.Error(err, "failed to apply updated pna request")
 			return reconcile.Result{}, nil
@@ -169,7 +169,7 @@ func (r *OperatorReconciler) handleUpdate(instance common_types.OperatorCr, name
 	}
 
 	// Upgrade application for the new networking settings to take effect
-	h := helm.NewHelm(namespace, r.Configuration.DeploymentDir, nil)
+	h := helm.NewHelm(namespace, r.Configuration.RuntimeDeploymentPath, nil)
 	if err := h.Deploy(); err != nil {
 		logger.Error(err, "failed to update the helm chart")
 		return reconcile.Result{}, err
@@ -254,7 +254,7 @@ func (r *OperatorReconciler) handleCreate(instance common_types.OperatorCr, name
 	logger.Info("Called")
 
 	//Execute CR based templating to resolve the variables in the resource-req dir
-	resReqTemplater, err := template.NewTemplater(instance.GetSpec(), namespace, r.Configuration.DeploymentDir, r.Configuration.ResReqDirName, r.Configuration.Template)
+	resReqTemplater, err := template.NewTemplater(instance.GetSpec(), namespace, r.Configuration.RuntimeDeploymentPath, r.Configuration.ResReqDirName, r.Configuration.Template)
 	if err != nil {
 		logger.Error(err, "Failed to initialize the res-req appDeploymentTemplater")
 		return reconcile.Result{}, nil
@@ -266,14 +266,14 @@ func (r *OperatorReconciler) handleCreate(instance common_types.OperatorCr, name
 	}
 
 	//Execute templating for the app-deployment directory using the values from the CR
-	appDeploymentTemplater, err := template.NewTemplater(instance.GetSpec(), namespace, r.Configuration.DeploymentDir, r.Configuration.DeploymentDirName, r.Configuration.Template)
+	appDeploymentTemplater, err := template.NewTemplater(instance.GetSpec(), namespace, r.Configuration.RuntimeDeploymentPath, r.Configuration.AppDeploymentDirName, r.Configuration.Template)
 	if err != nil {
 		logger.Error(err, "Failed to initialize the appDeploymentTemplater")
 		return reconcile.Result{}, nil
 	}
 
 	//Request NDAC platform resources
-	appliedPlatformResourceDescriptors, err := platformres.ApplyPlatformResourceRequests(namespace, r.Configuration.ResReqDir)
+	appliedPlatformResourceDescriptors, err := platformres.ApplyPlatformResourceRequests(namespace, r.Configuration.RuntimeResReqPath)
 	if err != nil {
 		logger.Error(err, "failed to apply the platform resource requests")
 		return reconcile.Result{}, nil
@@ -293,7 +293,7 @@ func (r *OperatorReconciler) handleCreate(instance common_types.OperatorCr, name
 	}
 
 	//Optional - Helm based deployment
-	err = helm.NewHelm(namespace, r.Configuration.DeploymentDir, nil).Deploy()
+	err = helm.NewHelm(namespace, r.Configuration.RuntimeDeploymentPath, nil).Deploy()
 	if err != nil {
 		logger.Error(err, "Failed to deploy the helm chart")
 		return reconcile.Result{}, nil
