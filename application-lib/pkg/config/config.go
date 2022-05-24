@@ -12,25 +12,24 @@ import (
 const OperatorConfigFilename = "operatorconfig.yaml"
 
 type OperatorConfig struct {
-	ApplicationName     string         `yaml:"applicationName"`
-	Namespace           string         `yaml:"namespace"`
-	DeploymentSourceDir string         `yaml:"deploymentSourceDir"`
-	DeploymentDir       string         `yaml:"deploymentDir"`
-	DeploymentDirName   string         `yaml:"deploymentDirName"`
-	ResReqDir           string         `yaml:"resReqDir"`
-	ResReqDirName       string         `yaml:"resReqDirName"`
-	ServiceName         string         `yaml:"serviceName"`
-	DeploymentName      string         `yaml:"deploymentName"`
-	AppPnaName          string         `yaml:"appPnaName"`
-	Template            TemplateConfig `yaml:"templater"`
+	ApplicationName             string         `yaml:"applicationName"`
+	Namespace                   string         `yaml:"namespace"`
+	SourceDeploymentPath        string         `yaml:"sourceDeploymentPath"`
+	RuntimeDeploymentPath       string         `yaml:"runtimeDeploymentPath"`
+	AppDeploymentDirName        string         `yaml:"appDeploymentDirName"`
+	RuntimeResReqPath           string         `yaml:"runtimeResReqPath"`
+	ResReqDirName               string         `yaml:"resReqDirName"`
+	KubernetesAppDeploymentName string         `yaml:"kubernetesAppDeploymentName"`
+	AppPnaName                  string         `yaml:"appPnaName"`
+	Template                    TemplateConfig `yaml:"templater"`
 }
 
-func (in *OperatorConfig) GetAppDeploymentSourceDir() string {
-	return in.DeploymentSourceDir + "/" + in.DeploymentDirName
+func (in *OperatorConfig) GetAppDeploymentSourcePath() string {
+	return in.SourceDeploymentPath + "/" + in.AppDeploymentDirName
 }
 
-func (in *OperatorConfig) GetResourceRequestSourceDir() string {
-	return in.DeploymentSourceDir + "/" + in.ResReqDirName
+func (in *OperatorConfig) GetResourceRequestSourcePath() string {
+	return in.SourceDeploymentPath + "/" + in.ResReqDirName
 }
 
 type TemplateConfig struct {
