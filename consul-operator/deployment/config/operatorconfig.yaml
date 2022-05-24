@@ -1,11 +1,10 @@
 applicationName: Consul
-deploymentSourceDir: deployment
-deploymentDir: /usr/src/app
-deploymentDirName: app-deployment
-resReqDir: /usr/src/app/resource-reqs-generated
+sourceDeploymentPath: deployment
+runtimeDeploymentPath: /usr/src/app
+appDeploymentDirName: app-deployment
+runtimeResReqPath: /usr/src/app/resource-reqs-generated
 resReqDirName: resource-reqs
-serviceName: example-consul-service
-deploymentName: example-consul
+kubernetesAppDeploymentName: example-consul
 appPnaName: private-network-for-consul
 usingPnaLabelKey: ndac.appfw.private-network-access
 templater:
