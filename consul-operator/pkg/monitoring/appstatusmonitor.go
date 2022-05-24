@@ -29,7 +29,7 @@ func CreateAppStatusMonitor(instance common_types.OperatorCr, namespace string, 
 					reconciler.Configuration.AppPnaName,
 					[]handlers.DeploymentId{
 						{DeploymentType: handlers.DeploymentTypeStatefulset,
-							Name: reconciler.Configuration.DeploymentName},
+							Name: reconciler.Configuration.KubernetesAppDeploymentName},
 					},
 				))
 			}

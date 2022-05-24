@@ -67,14 +67,13 @@ func CustomTearUp() {
 	Expect(k8sClient).NotTo(BeNil())
 
 	operatorConfiguration := config.OperatorConfig{
-		ApplicationName:   "Consul",
-		DeploymentDir:     "../deployment",
-		DeploymentDirName: "app-deployment",
-		ResReqDir:         "../deployment/resource-reqs-generated",
-		ResReqDirName:     "resource-reqs",
-		ServiceName:       consulServiceName,
-		DeploymentName:    consulStatefulSetName,
-		AppPnaName:        "private-network-for-consul",
+		ApplicationName:             "Consul",
+		RuntimeDeploymentPath:       "../deployment",
+		AppDeploymentDirName:        "app-deployment",
+		RuntimeResReqPath:           "../deployment/resource-reqs-generated",
+		ResReqDirName:               "resource-reqs",
+		KubernetesAppDeploymentName: consulStatefulSetName,
+		AppPnaName:                  "private-network-for-consul",
 		Template: config.TemplateConfig{
 			LeftDelimiter:  "[[",
 			RightDelimiter: "]]",
