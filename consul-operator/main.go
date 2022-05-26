@@ -15,6 +15,7 @@ import (
 	"github.com/nokia/industrial-application-framework/consul-operator/pkg/parameters"
 	"github.com/operator-framework/operator-lib/leader"
 	"os"
+	"strings"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -65,6 +66,13 @@ func main() {
 
 	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
 
+	var operatorConfig config.OperatorConfig
+	operatorConfig, err := config.GetConfiguration(configDir)
+	if err != nil {
+		setupLog.Error(err, "unable to read configuration")
+		os.Exit(1)
+	}
+
 	watchNamespace, err := getWatchNamespace()
 	if err != nil {
 		setupLog.Error(err, "unable to get WatchNamespace, "+
@@ -73,7 +81,8 @@ func main() {
 
 	// Become the leader before proceeding
 	// to keep compatibility with previous operator sdk
-	err = leader.Become(context.TODO(), "consul-operator-lock")
+	lockName := strings.ToLower(operatorConfig.ApplicationName) + "-operator-lock"
+	err = leader.Become(context.TODO(), lockName)
 	if err != nil {
 		setupLog.Error(err, "unable to become the leader")
 		os.Exit(1)
@@ -92,14 +101,8 @@ func main() {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
-	var operatorConfig config.OperatorConfig
-	operatorConfig, err = config.GetConfiguration(configDir)
-	if err != nil {
-		setupLog.Error(err, "unable to read configuration")
-		os.Exit(1)
-	}
 
-	reconciler := controllers.ConsulReconciler{
+	reconciler := controllers.AppSpecificReconciler{
 		Common: handlers.OperatorReconciler{
 			Client:        mgr.GetClient(),
 			Scheme:        mgr.GetScheme(),
