@@ -17,7 +17,7 @@ import (
 var log = logf.Log.WithName("controller_consul")
 
 // OperatorReconciler reconciles a Application object
-type ConsulReconciler struct {
+type AppSpecificReconciler struct {
 	Common handlers.OperatorReconciler
 }
 
@@ -44,7 +44,7 @@ type ConsulReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-etcd
 //kube-apiserverruntime@v0.9.2/pkg/reconcile
-func (r *ConsulReconciler) Reconcile(ctx context.Context, request ctrl.Request) (ctrl.Result, error) {
+func (r *AppSpecificReconciler) Reconcile(ctx context.Context, request ctrl.Request) (ctrl.Result, error) {
 	return r.Common.Reconcile(ctx, request)
 }
 

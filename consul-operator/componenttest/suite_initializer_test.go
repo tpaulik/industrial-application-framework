@@ -79,7 +79,7 @@ func CustomTearUp() {
 			RightDelimiter: "]]",
 		}}
 
-	reconciler := controllers.ConsulReconciler{
+	reconciler := controllers.AppSpecificReconciler{
 		Common: handlers.OperatorReconciler{
 			Client:        k8sManager.GetClient(),
 			Scheme:        k8sManager.GetScheme(),
