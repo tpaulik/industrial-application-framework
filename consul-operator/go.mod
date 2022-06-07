@@ -1,6 +1,6 @@
 module github.com/nokia/industrial-application-framework/consul-operator
 
-go 1.16
+go 1.17
 
 require (
 	github.com/nokia/industrial-application-framework/alarmlogger v0.0.0-20210824095151-771352d42ef7
