@@ -75,7 +75,10 @@ componenttest:
 
 .PHONY: run_test
 run_test:
-	go test ${PWD}/componenttest -v -race -ginkgo.v 
+	@echo === Run unit tests
+	chmod +x unittest.sh && ./unittest.sh
+	go tool cover -func=coverage.out
+
 all: build
 
 ##@ General
