@@ -6,14 +6,16 @@ package kubelib
 
 import (
 	"context"
-	log "github.com/sirupsen/logrus"
-	apps "k8s.io/api/apps/v1beta1"
+	apps "k8s.io/api/apps/v1"
 	batch "k8s.io/api/batch/v1"
 	k8v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/client-go/kubernetes"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
+
+var log = logf.Log.WithName("kubelib")
 
 type Command interface{}
 
@@ -44,15 +46,15 @@ type KubernetesCommand struct {
 }
 
 func (d *DeploymentCommand) Add(clientset kubernetes.Interface) error {
-	_, err := clientset.AppsV1beta1().Deployments("default").Create(context.TODO(), d.Deployment, metav1.CreateOptions{})
+	_, err := clientset.AppsV1().Deployments("default").Create(context.TODO(), d.Deployment, metav1.CreateOptions{})
 	return err
 }
 func (d *DeploymentCommand) Undo(clientset kubernetes.Interface) error {
-	err := clientset.AppsV1beta1().Deployments("default").Delete(context.TODO(), d.Deployment.Name, metav1.DeleteOptions{})
+	err := clientset.AppsV1().Deployments("default").Delete(context.TODO(), d.Deployment.Name, metav1.DeleteOptions{})
 	return err
 }
 func (d *DeploymentCommand) Update(clientset kubernetes.Interface) error {
-	_, err := clientset.AppsV1beta1().Deployments("default").Update(context.TODO(), d.Deployment, metav1.UpdateOptions{})
+	_, err := clientset.AppsV1().Deployments("default").Update(context.TODO(), d.Deployment, metav1.UpdateOptions{})
 	return err
 }
 
@@ -90,7 +92,7 @@ func (k *ConfigMapCommand) Add(clientset kubernetes.Interface) error {
 func (k *ConfigMapCommand) Update(clientset kubernetes.Interface) error {
 	_, err := clientset.CoreV1().ConfigMaps("default").Update(context.TODO(), k.Configmap, metav1.UpdateOptions{})
 	if err != nil {
-		log.Errorf("Failed to update configmap %s ", err.Error())
+		log.Error(err, "Failed to update configmap "+err.Error())
 	}
 	return err
 }
@@ -99,7 +101,7 @@ func (k *ConfigMapCommand) Update(clientset kubernetes.Interface) error {
 func (k *ConfigMapCommand) Undo(clientset kubernetes.Interface) error {
 	err := clientset.CoreV1().ConfigMaps("default").Delete(context.TODO(), k.Configmap.Name, metav1.DeleteOptions{})
 	if err != nil {
-		log.Errorf("Failed to update configmap %s ", err.Error())
+		log.Error(err, "Failed to update configmap "+err.Error())
 	}
 	return err
 }

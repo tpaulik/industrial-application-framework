@@ -5,7 +5,7 @@
 package kubelib
 
 import (
-	appsv1beta2 "k8s.io/api/apps/v1beta2"
+	appsv1 "k8s.io/api/apps/v1"
 	k8v1 "k8s.io/api/core/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
@@ -55,10 +55,10 @@ func CreateConfigMap(name string, dataKey string, data string) *k8v1.ConfigMap {
 }
 
 //CreateDeployment
-func CreateDeploymentConfig(name string) *appsv1beta2.Deployment {
-	dep := &appsv1beta2.Deployment{}
+func CreateDeploymentConfig(name string) *appsv1.Deployment {
+	dep := &appsv1.Deployment{}
 	dep.Kind = "Deployment"
-	dep.APIVersion = "apps/v1beta2"
+	dep.APIVersion = "apps/v1"
 	dep.Name = name
 	var revLimit int32
 	dep.Spec.RevisionHistoryLimit = &revLimit

@@ -4,12 +4,12 @@
 
 package kubelib
 
-import apps "k8s.io/api/apps/v1beta1"
+import apps "k8s.io/api/apps/v1"
 
 func CreateDeployment(name string) *apps.Deployment {
 	dep := &apps.Deployment{}
 	dep.Kind = "Deployment"
-	dep.APIVersion = "extensions/v1beta1"
+	dep.APIVersion = "extensions/v1"
 	dep.Name = name
 	var revLimit int32
 	dep.Spec.RevisionHistoryLimit = &revLimit
