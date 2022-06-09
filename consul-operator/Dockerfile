@@ -17,7 +17,7 @@ RUN make componenttest
 COPY deployment/helm /usr/local/bin/helm
 RUN chmod +x /usr/local/bin/helm
 # Run tests
-RUN make run_test && ls -la /workspace
+RUN make run_test
 
 
 # Build
