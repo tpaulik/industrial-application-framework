@@ -14,7 +14,7 @@ import (
 	"github.com/nokia/industrial-application-framework/consul-operator/controllers"
 	"github.com/nokia/industrial-application-framework/consul-operator/pkg/licenceexpired"
 	"github.com/nokia/industrial-application-framework/consul-operator/pkg/monitoring"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -22,17 +22,10 @@ import (
 	"path/filepath"
 	"runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/envtest/printer"
 	"testing"
 )
 
 const ItBinaryRelativePath = "/../componenttest/resources"
-
-var _ = BeforeSuite(func() {
-}, 60)
-
-var _ = AfterSuite(func() {
-}, 60)
 
 var ourScheme = k8sruntime.NewScheme()
 
@@ -114,7 +107,7 @@ func TestConsulOperator(t *testing.T) {
 
 	CustomTearUp()
 
-	RunSpecsWithDefaultAndCustomReporters(t, "Monitoring Operator Component Test Suite", []Reporter{printer.NewlineReporter{}})
+	RunSpecs(t, "Monitoring Operator Component Test Suite")
 
 	CustomTearDown()
 	ctenv.TearDownTestEnv()
