@@ -12,7 +12,7 @@ import (
 	"github.com/onsi/ginkgo"
 	"io"
 	"io/ioutil"
-	"k8s.io/api/admission/v1beta1"
+	admissionv1 "k8s.io/api/admission/v1"
 	"k8s.io/apimachinery/pkg/util/json"
 	"net/http"
 )
@@ -24,24 +24,24 @@ type AsyncAdmissionRequestSender struct {
 	httpResponse http.Response
 }
 
-func SendAdmissionReviewRequest(url string, admissionReviewReq v1beta1.AdmissionReview) (*v1beta1.AdmissionReview, error) {
+func SendAdmissionReviewRequest(url string, admissionReviewReq admissionv1.AdmissionReview) (*admissionv1.AdmissionReview, error) {
 	requestbody, err := json.Marshal(admissionReviewReq)
 	resp, err := http.Post(url, "application/json", bytes.NewBuffer(requestbody))
 
 	if err != nil {
-		return &v1beta1.AdmissionReview{}, err
+		return &admissionv1.AdmissionReview{}, err
 	} else if resp.StatusCode != 200 {
-		return &v1beta1.AdmissionReview{}, errors.New("Response status code is: " + string(rune(resp.StatusCode)))
+		return &admissionv1.AdmissionReview{}, errors.New("Response status code is: " + string(rune(resp.StatusCode)))
 	}
 	ar, err := parseResponseAsAdmissionReview(resp.Body)
 	if err != nil {
-		return &v1beta1.AdmissionReview{}, err
+		return &admissionv1.AdmissionReview{}, err
 	}
 	return ar, nil
 }
 
 // sending the request in a different go routine to avoid blocking of the main thread and to be able to react on the changes by the webhook
-func (webhook *AsyncAdmissionRequestSender) SendAdmissionReviewRequestAsync(admissionReviewReq v1beta1.AdmissionReview) error {
+func (webhook *AsyncAdmissionRequestSender) SendAdmissionReviewRequestAsync(admissionReviewReq admissionv1.AdmissionReview) error {
 	if webhook.inProgress {
 		return errors.New("A previous request is in progress")
 	}
@@ -66,38 +66,38 @@ func (webhook *AsyncAdmissionRequestSender) SendAdmissionReviewRequestAsync(admi
 	return nil
 }
 
-func (webhook *AsyncAdmissionRequestSender) WaitAndReceiveResponseAsAdmissionReview() (v1beta1.AdmissionReview, error) {
+func (webhook *AsyncAdmissionRequestSender) WaitAndReceiveResponseAsAdmissionReview() (admissionv1.AdmissionReview, error) {
 	// wait for the webhook to finish and return response
 	if webhook.errChannel == nil {
-		return v1beta1.AdmissionReview{}, errors.New("Request was not initiated, cannot read response")
+		return admissionv1.AdmissionReview{}, errors.New("Request was not initiated, cannot read response")
 	}
 	err := <-webhook.errChannel
 	if err != nil {
 		webhook.inProgress = false
-		return v1beta1.AdmissionReview{}, err
+		return admissionv1.AdmissionReview{}, err
 	}
 	ar, err := webhook.parseResponseAsAdmissionReview()
 	webhook.inProgress = false
 	if err != nil {
-		return v1beta1.AdmissionReview{}, err
+		return admissionv1.AdmissionReview{}, err
 	}
 	return *ar, nil
 }
 
-func (webhook *AsyncAdmissionRequestSender) parseResponseAsAdmissionReview() (*v1beta1.AdmissionReview, error) {
+func (webhook *AsyncAdmissionRequestSender) parseResponseAsAdmissionReview() (*admissionv1.AdmissionReview, error) {
 	defer webhook.httpResponse.Body.Close()
 	return parseResponseAsAdmissionReview(webhook.httpResponse.Body)
 }
 
-func parseResponseAsAdmissionReview(httpBody io.ReadCloser) (*v1beta1.AdmissionReview, error) {
+func parseResponseAsAdmissionReview(httpBody io.ReadCloser) (*admissionv1.AdmissionReview, error) {
 	body, err := ioutil.ReadAll(httpBody)
 	if err != nil {
-		return &v1beta1.AdmissionReview{}, err
+		return &admissionv1.AdmissionReview{}, err
 	}
-	var ar *v1beta1.AdmissionReview
+	var ar *admissionv1.AdmissionReview
 	err = json.Unmarshal(body, &ar)
 	if err != nil {
-		return &v1beta1.AdmissionReview{}, err
+		return &admissionv1.AdmissionReview{}, err
 	}
 	return ar, nil
 }
