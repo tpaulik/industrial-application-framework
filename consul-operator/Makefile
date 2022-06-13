@@ -76,10 +76,11 @@ componenttest:
 .PHONY: run_test
 run_test:
 	@echo === Run unit tests
+  cp deployment/helm /usr/local/bin/helm && chmod +x /usr/local/bin/helm
 	chmod +x unittest.sh && ./unittest.sh
 	go tool cover -func=coverage.out
 
-all: build
+all: componenttest run_test build
 
 ##@ General
 
@@ -117,7 +118,7 @@ test: manifests generate fmt vet envtest ## Run tests.
 ##@ Build
 
 build: generate fmt vet ## Build manager binary.
-	go build -o bin/manager main.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o app-operator main.go
 
 run: manifests generate fmt vet ## Run a controller from your host.
 	go run ./main.go

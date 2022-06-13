@@ -12,16 +12,8 @@ COPY ./ /workspace
 # and so that source changes don't invalidate our downloaded layer
 RUN go mod download
 
-# Get requirements for running tests
-RUN make componenttest
-COPY deployment/helm /usr/local/bin/helm
-RUN chmod +x /usr/local/bin/helm
-# Run tests
-RUN make run_test
-
-
 # Build
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o app-operator main.go
+RUN make all
 
 FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
 
