@@ -76,7 +76,9 @@ componenttest:
 .PHONY: run_test
 run_test:
 	@echo === Run unit tests
-	cp deployment/helm /usr/local/bin/helm && chmod +x /usr/local/bin/helm
+	ls -la deployment
+	chmod +x deployment/helm
+	cp -p deployment/helm /usr/local/bin/helm
 	chmod +x unittest.sh && ./unittest.sh
 	go tool cover -func=coverage.out
 
