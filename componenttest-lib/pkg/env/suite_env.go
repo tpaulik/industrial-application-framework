@@ -19,7 +19,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	"k8s.io/client-go/rest"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -77,7 +77,7 @@ func TearUpTestEnv(testBinariesPath string, crdPaths ...string) {
 		os.Setenv(KubebuilderControlPlaneStopTimeout, "120s")
 	}
 
-	By("bootstrapping test environment")
+	log.Info("bootstrapping test environment")
 	defaultCRDPaths := []string{
 		filepath.Join("..", "config", "crd", "bases"),
 		filepath.Join(".", "crds"),
@@ -178,7 +178,7 @@ func InstallCRDs() error {
 
 func TearDownTestEnv() {
 	close(namespaceControllerStopper)
-	By("tearing down the test environment")
+	log.Info("tearing down the test environment")
 	err := testenv.Stop()
 	Expect(err).NotTo(HaveOccurred())
 }
