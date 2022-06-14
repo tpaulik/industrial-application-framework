@@ -27,6 +27,16 @@ import (
 
 const ItBinaryRelativePath = "/../componenttest/resources"
 
+var _ = BeforeSuite(func() {
+	ctenv.TearUpTestEnv(getTestBinaryPath(ItBinaryRelativePath))
+	CustomTearUp()
+})
+
+var _ = AfterSuite(func() {
+	CustomTearDown()
+	ctenv.TearDownTestEnv()
+})
+
 var ourScheme = k8sruntime.NewScheme()
 
 func init() {
@@ -89,7 +99,7 @@ func CustomTearUp() {
 
 	Expect(err).ToNot(HaveOccurred())
 
-	By("Starting the Operator")
+	log.Info("Starting the Operator")
 	go func() {
 		defer GinkgoRecover()
 		Expect(k8sManager.Start(ctrl.SetupSignalHandler())).NotTo(HaveOccurred())
@@ -102,13 +112,6 @@ func CustomTearDown() {
 
 func TestConsulOperator(t *testing.T) {
 	RegisterFailHandler(Fail)
+	RunSpecs(t, "Consul Operator Component Test Suite")
 
-	ctenv.TearUpTestEnv(getTestBinaryPath(ItBinaryRelativePath))
-
-	CustomTearUp()
-
-	RunSpecs(t, "Monitoring Operator Component Test Suite")
-
-	CustomTearDown()
-	ctenv.TearDownTestEnv()
 }

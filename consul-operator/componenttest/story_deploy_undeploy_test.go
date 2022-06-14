@@ -34,10 +34,10 @@ var k8sClient client.Client
 
 var _ = Describe("Consul Operator Component Tests", func() {
 	BeforeEach(func() {
-	}, 60)
+	})
 
 	AfterEach(func() {
-	}, 60)
+	})
 
 	var err error
 
