@@ -29,32 +29,7 @@ const ItBinaryRelativePath = "/../componenttest/resources"
 
 var _ = BeforeSuite(func() {
 	ctenv.TearUpTestEnv(getTestBinaryPath(ItBinaryRelativePath))
-	CustomTearUp()
-})
 
-var _ = AfterSuite(func() {
-	CustomTearDown()
-	ctenv.TearDownTestEnv()
-})
-
-var ourScheme = k8sruntime.NewScheme()
-
-func init() {
-
-	utilruntime.Must(clientgoscheme.AddToScheme(ourScheme))
-
-	utilruntime.Must(appdacnokiacomv1alpha1.AddToScheme(ourScheme))
-	//+kubebuilder:scaffold:scheme
-}
-
-func getTestBinaryPath(testBinariesRelativePath string) string {
-	_, b, _, _ := runtime.Caller(0)
-	basepath := filepath.Dir(b)
-	return basepath + testBinariesRelativePath
-}
-
-func CustomTearUp() {
-	var err error
 	k8sdynamic.Config = ctenv.Cfg
 	kubelib.Config = ctenv.Cfg
 
@@ -104,10 +79,29 @@ func CustomTearUp() {
 		defer GinkgoRecover()
 		Expect(k8sManager.Start(ctrl.SetupSignalHandler())).NotTo(HaveOccurred())
 	}()
+
+})
+
+var _ = AfterSuite(func() {
+	ctenv.ResetEtcd()
+
+	ctenv.TearDownTestEnv()
+})
+
+var ourScheme = k8sruntime.NewScheme()
+
+func init() {
+
+	utilruntime.Must(clientgoscheme.AddToScheme(ourScheme))
+
+	utilruntime.Must(appdacnokiacomv1alpha1.AddToScheme(ourScheme))
+	//+kubebuilder:scaffold:scheme
 }
 
-func CustomTearDown() {
-	ctenv.ResetEtcd()
+func getTestBinaryPath(testBinariesRelativePath string) string {
+	_, b, _, _ := runtime.Caller(0)
+	basepath := filepath.Dir(b)
+	return basepath + testBinariesRelativePath
 }
 
 func TestConsulOperator(t *testing.T) {
