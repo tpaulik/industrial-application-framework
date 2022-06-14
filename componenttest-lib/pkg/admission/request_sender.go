@@ -9,7 +9,7 @@ package admission
 import (
 	"bytes"
 	"errors"
-	"github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/v2"
 	"io"
 	"io/ioutil"
 	admissionv1 "k8s.io/api/admission/v1"
