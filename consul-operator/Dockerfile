@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 # Build the manager binary
-FROM golang:1.16 as builder
+FROM golang:1.17 as builder
 
 WORKDIR /workspace
 
@@ -23,7 +23,7 @@ COPY pkg/ pkg/
 # Build
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o app-operator main.go
 
-FROM registry.access.redhat.com/ubi8/ubi-minimal:latest
+FROM docker.io/library/alpine:latest
 
 ENV RESREQ_DIR=/usr/src/app/resource-reqs-generated \
     DEPLOYMENT_DIR=/usr/src/app
