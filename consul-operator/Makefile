@@ -71,12 +71,17 @@ SHELL = /usr/bin/env bash -o pipefail
 componenttest:
 	mkdir -p ${ENVTESTDIR}
 	wget ${KUBERNETES_URL}/${EVNTEST_KUBEAPISERVER}/bin/linux/amd64/kube-apiserver -nv -P ${ENVTESTDIR} && chmod +x ${ENVTESTDIR}/kube-apiserver
-	curl ${GOOGLE_URL}/${ENVTEST_ETCD}/etcd-${ENVTEST_ETCD}-linux-amd64.tar.gz | tar -xvz etcd-${ENVTEST_ETCD}-linux-amd64/etcd && mv etcd-${ENVTEST_ETCD}-linux-amd64/etcd ${ENVTESTDIR}/ && rmdir etcd-${ENVTEST_ETCD}-linux-amd64
+	curl ${GOOGLE_URL}/${ENVTEST_ETCD}/etcd-${ENVTEST_ETCD}-linux-amd64.tar.gz | tar -xvz etcd-${ENVTEST_ETCD}-linux-amd64/etcd && mv etcd-${ENVTEST_ETCD}-linux-amd64/etcd ${ENVTESTDIR}/ && chmod +x ${ENVTESTDIR}/etcd && rmdir etcd-${ENVTEST_ETCD}-linux-amd64
 
 .PHONY: run_test
 run_test:
-	go test ${PWD}/componenttest -v -race -ginkgo.v 
-all: build
+	@echo === Run unit tests
+	ls -la deployment
+	install -m 0777 deployment/helm /usr/local/bin/helm
+	chmod +x unittest.sh && ./unittest.sh
+	go tool cover -func=coverage.out
+
+all: componenttest run_test build
 
 ##@ General
 
@@ -114,7 +119,7 @@ test: manifests generate fmt vet envtest ## Run tests.
 ##@ Build
 
 build: generate fmt vet ## Build manager binary.
-	go build -o bin/manager main.go
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -o app-operator main.go
 
 run: manifests generate fmt vet ## Run a controller from your host.
 	go run ./main.go
