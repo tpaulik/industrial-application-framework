@@ -11,7 +11,7 @@ import (
 	ctenv "github.com/nokia/industrial-application-framework/componenttest-lib/pkg/env"
 	ctk8sclient "github.com/nokia/industrial-application-framework/componenttest-lib/pkg/k8sclient"
 	. "github.com/nokia/industrial-application-framework/componenttest-lib/pkg/matcher"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -34,10 +34,10 @@ var k8sClient client.Client
 
 var _ = Describe("Consul Operator Component Tests", func() {
 	BeforeEach(func() {
-	}, 60)
+	})
 
 	AfterEach(func() {
-	}, 60)
+	})
 
 	var err error
 

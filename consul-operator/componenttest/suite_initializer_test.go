@@ -14,7 +14,7 @@ import (
 	"github.com/nokia/industrial-application-framework/consul-operator/controllers"
 	"github.com/nokia/industrial-application-framework/consul-operator/pkg/licenceexpired"
 	"github.com/nokia/industrial-application-framework/consul-operator/pkg/monitoring"
-	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 	k8sruntime "k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
@@ -22,36 +22,14 @@ import (
 	"path/filepath"
 	"runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
-	"sigs.k8s.io/controller-runtime/pkg/envtest/printer"
 	"testing"
 )
 
 const ItBinaryRelativePath = "/../componenttest/resources"
 
 var _ = BeforeSuite(func() {
-}, 60)
+	ctenv.TearUpTestEnv(getTestBinaryPath(ItBinaryRelativePath))
 
-var _ = AfterSuite(func() {
-}, 60)
-
-var ourScheme = k8sruntime.NewScheme()
-
-func init() {
-
-	utilruntime.Must(clientgoscheme.AddToScheme(ourScheme))
-
-	utilruntime.Must(appdacnokiacomv1alpha1.AddToScheme(ourScheme))
-	//+kubebuilder:scaffold:scheme
-}
-
-func getTestBinaryPath(testBinariesRelativePath string) string {
-	_, b, _, _ := runtime.Caller(0)
-	basepath := filepath.Dir(b)
-	return basepath + testBinariesRelativePath
-}
-
-func CustomTearUp() {
-	var err error
 	k8sdynamic.Config = ctenv.Cfg
 	kubelib.Config = ctenv.Cfg
 
@@ -96,26 +74,38 @@ func CustomTearUp() {
 
 	Expect(err).ToNot(HaveOccurred())
 
-	By("Starting the Operator")
+	log.Info("Starting the Operator")
 	go func() {
 		defer GinkgoRecover()
 		Expect(k8sManager.Start(ctrl.SetupSignalHandler())).NotTo(HaveOccurred())
 	}()
+
+})
+
+var _ = AfterSuite(func() {
+	ctenv.ResetEtcd()
+
+	ctenv.TearDownTestEnv()
+})
+
+var ourScheme = k8sruntime.NewScheme()
+
+func init() {
+
+	utilruntime.Must(clientgoscheme.AddToScheme(ourScheme))
+
+	utilruntime.Must(appdacnokiacomv1alpha1.AddToScheme(ourScheme))
+	//+kubebuilder:scaffold:scheme
 }
 
-func CustomTearDown() {
-	ctenv.ResetEtcd()
+func getTestBinaryPath(testBinariesRelativePath string) string {
+	_, b, _, _ := runtime.Caller(0)
+	basepath := filepath.Dir(b)
+	return basepath + testBinariesRelativePath
 }
 
 func TestConsulOperator(t *testing.T) {
 	RegisterFailHandler(Fail)
+	RunSpecs(t, "Consul Operator Component Test Suite")
 
-	ctenv.TearUpTestEnv(getTestBinaryPath(ItBinaryRelativePath))
-
-	CustomTearUp()
-
-	RunSpecsWithDefaultAndCustomReporters(t, "Monitoring Operator Component Test Suite", []Reporter{printer.NewlineReporter{}})
-
-	CustomTearDown()
-	ctenv.TearDownTestEnv()
 }
