@@ -6,26 +6,11 @@
 FROM golang:1.17 as builder
 
 WORKDIR /workspace
-
-# Copy the Go Modules manifests
-COPY go.mod go.mod
-COPY go.sum go.sum
+COPY ./ workspace
 
 # cache deps before building and copying source so that we don't need to re-download as much
 # and so that source changes don't invalidate our downloaded layer
 RUN go mod download
-
-# Copy the go source
-COPY main.go main.go
-COPY api/ api/
-COPY config/ config/
-COPY controllers/ controllers/
-COPY hack/ hack/
-COPY pkg/ pkg/
-COPY deployment/ deployment/
-COPY componenttest/ componenttest/
-COPY Makefile Makefile
-COPY unittest.sh unittest.sh
 
 # Build
 RUN make all
@@ -36,7 +21,7 @@ ENV RESREQ_DIR=/usr/src/app/resource-reqs-generated \
     DEPLOYMENT_DIR=/usr/src/app
 
 WORKDIR /
-COPY --from=builder /workspace/app-operator .
+COPY --from=builder /app-operator .
 
 COPY deployment/helm /usr/local/bin/helm
 RUN chmod +x  /usr/local/bin/helm
