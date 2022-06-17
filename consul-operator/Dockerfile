@@ -15,7 +15,7 @@ RUN go mod download
 # Build
 RUN make all
 
-RUN echo "TEST"
+RUN echo "TEST2"
 
 FROM docker.io/library/alpine:latest
 
