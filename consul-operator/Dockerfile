@@ -21,7 +21,7 @@ ENV RESREQ_DIR=/usr/src/app/resource-reqs-generated \
     DEPLOYMENT_DIR=/usr/src/app
 
 WORKDIR /
-COPY --from=builder /app-operator .
+COPY --from=builder /workspace/app-operator .
 
 COPY deployment/helm /usr/local/bin/helm
 RUN chmod +x  /usr/local/bin/helm
