@@ -16,14 +16,8 @@ jobs:
       uses: actions/setup-go@v2
       with:
         go-version: 1.17
-    - name: Get component binaries for consul-operator
-      run: make componenttest
-      working-directory: ./consul-operator
-    - name: Run componentest for consul-operator
-      run: make run_test
-      working-directory: ./consul-operator      
-    - name: Build consul-operator
-      run: make docker-build IMG=consul-operator:test
+    - name: Build and run tests for consul-operator
+      run: make all IMG=consul-operator:test
       working-directory: ./consul-operator
     - name: Build alarmlogger
       run: go build -v ./...
