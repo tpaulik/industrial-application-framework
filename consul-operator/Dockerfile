@@ -15,6 +15,8 @@ RUN go mod download
 # Build
 RUN make all
 
+RUN echo "TEST"
+
 FROM docker.io/library/alpine:latest
 
 ENV RESREQ_DIR=/usr/src/app/resource-reqs-generated \
